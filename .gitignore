@@ -41,3 +41,13 @@ example
 # generated native folders
 /ios
 /android
+
+# backend secrets
+.env
+
+# Claude Code files (personal, not shared)
+CLAUDE.md
+CLAUDE.local.md
+backend/CLAUDE.md
+docs/product.md
+.claude/
