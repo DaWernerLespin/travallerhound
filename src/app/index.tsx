@@ -1,98 +1,75 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
+import { router } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { Hound } from '@/components/hound';
+import { Icon } from '@/components/icon';
+import { PrimaryButton } from '@/components/primary-button';
+import { TopBar } from '@/components/top-bar';
+import { colors, fonts, shadow } from '@/constants/theme';
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
+export default function WelcomeScreen() {
   return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
-
-export default function HomeScreen() {
-  return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
-
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
-
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
-
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+    <SafeAreaView style={styles.screen}>
+      <StatusBar style="light" />
+      <TopBar light />
+      <View style={styles.copy}>
+        <Text style={styles.eyebrow}>Bonjour, Alex</Text>
+        <Text style={styles.title}>
+          Ich bin <Text style={styles.highlight}>Bruno.</Text>
+          {'\n'}Deine Spürnase{'\n'}für Frankreich.
+        </Text>
+        <Text style={styles.text}>
+          Ich kenne deine Erdnuss- und Lupinenallergie und prüfe für dich jedes Gericht – auch versteckte Zutaten.
+        </Text>
+      </View>
+      <View style={styles.mascot}>
+        <Hound size={190} />
+        <View style={styles.pills}>
+          <View style={styles.pill}>
+            <Icon name="shield" size={16} />
+            <Text style={styles.pillText}>Erdnussallergie gespeichert</Text>
+          </View>
+          <View style={styles.pill}>
+            <Icon name="shield" size={16} />
+            <Text style={styles.pillText}>Lupinenallergie gespeichert</Text>
+          </View>
+        </View>
+      </View>
+      <View style={styles.footer}>
+        <PrimaryButton label="Speisekarte prüfen" variant="cream" onPress={() => router.push('/menu')} />
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-  },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
-  },
-  title: {
-    textAlign: 'center',
-  },
-  code: {
+  screen: { flex: 1, backgroundColor: colors.ink },
+  copy: { paddingHorizontal: 26, paddingTop: 24 },
+  eyebrow: {
+    fontFamily: fonts.display,
+    fontSize: 10,
+    letterSpacing: 1.8,
     textTransform: 'uppercase',
+    color: colors.yellow,
+    marginBottom: 10,
   },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+  title: { fontFamily: fonts.display, fontSize: 36, lineHeight: 40, color: colors.cream, letterSpacing: -0.8 },
+  highlight: { color: colors.yellow },
+  text: { fontFamily: fonts.body, fontSize: 15, lineHeight: 23, color: colors.welcomeText, marginTop: 16, maxWidth: 320 },
+  mascot: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  pills: { marginTop: -18, gap: 6, alignItems: 'center' },
+  pill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    backgroundColor: colors.paper,
+    borderRadius: 30,
+    paddingVertical: 8,
+    paddingHorizontal: 13,
+    ...shadow,
   },
+  pillText: { fontFamily: fonts.bodyBold, fontSize: 11, color: colors.ink },
+  footer: { paddingHorizontal: 24, paddingBottom: 20 },
 });

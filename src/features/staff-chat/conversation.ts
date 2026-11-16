@@ -8,8 +8,8 @@ import type { Question, StaffReply, StaffReplySource } from './types';
  */
 export function buildQuestions(dishName: string, findings: Finding[]): Question[] {
   const questions: Question[] = [
-    { id: 'allergens', topic: 'allergens', phrase: { id: 'ask_allergens', params: { dish: dishName } } },
-    { id: 'cross', topic: 'cross', phrase: { id: 'ask_cross' } },
+    { id: 'allergens', topic: 'allergens', label: 'Enthält das Gericht Erdnüsse oder Lupinen?', phrase: { id: 'ask_allergens', params: { dish: dishName } } },
+    { id: 'cross', topic: 'cross', label: 'Geht es ohne Kreuzkontamination?', phrase: { id: 'ask_cross' } },
   ];
 
   const hidden = new Map<string, { fr: string; de: string; peanut: boolean; lupin: boolean }>();
@@ -27,10 +27,12 @@ export function buildQuestions(dishName: string, findings: Finding[]): Question[
 
   for (const [ingredientId, entry] of hidden) {
     const phraseId = entry.peanut && entry.lupin ? 'ask_ingredient_both' : entry.peanut ? 'ask_ingredient_peanut' : 'ask_ingredient_lupin';
+    const allergens = entry.peanut && entry.lupin ? 'Erdnuss oder Lupine' : entry.peanut ? 'Erdnuss/Erdnussöl' : 'Lupinenmehl';
     questions.push({
       id: `ingredient-${ingredientId}`,
       topic: 'ingredient',
       ingredientId,
+      label: `${entry.de}: mit ${allergens}?`,
       phrase: { id: phraseId, params: { ingredientFr: entry.fr, ingredientDe: entry.de } },
     });
   }

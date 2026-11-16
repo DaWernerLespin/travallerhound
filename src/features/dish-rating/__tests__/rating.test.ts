@@ -1,3 +1,5 @@
+import { describe, expect, it } from '@jest/globals';
+
 import { dishKnowledge } from '@/features/dish-db';
 import { DISHES } from '@/features/dish-db/data/dishes';
 import { INGREDIENTS } from '@/features/dish-db/data/ingredients';
@@ -104,6 +106,15 @@ describe('menu parsing', () => {
   it('skips English translation lines', () => {
     const parsed = parseMenuText('Salade Niçoise 17,90\nTuna, hard-boiled egg, olives, tomatoes\nSoupe à l’oignon 9,00', dishKnowledge);
     expect(parsed.map((i) => i.name)).toEqual(['Salade Niçoise', 'Soupe à l’oignon']);
+  });
+
+  it('matches dishes with extra details after the name', () => {
+    const parsed = parseMenuText('Quiche lorraine, salade verte 12,90\nConfit de canard, pommes sarladaises 21,00', dishKnowledge);
+    expect(parsed.map((i) => i.match?.dish.id)).toEqual(['quiche-lorraine', 'confit-canard']);
+  });
+
+  it('does not match unrelated dishes that share one word', () => {
+    expect(dishKnowledge.matchDish('Salade de lentilles')).toBeNull();
   });
 
   it('accepts plain typed dish names without prices', () => {

@@ -8,7 +8,9 @@ import type { MenuFile, MenuTextResult, MenuTextSource } from './types';
 export class DemoMenuTextSource implements MenuTextSource {
   async extract(file: MenuFile): Promise<MenuTextResult> {
     const name = file.name.toLowerCase();
-    const menu = DEMO_MENUS.find((m) => m.fileSize === file.size || name.includes(m.id));
+    const menu = DEMO_MENUS.find(
+      (m) => (m.fileSize !== undefined && m.fileSize === file.size) || name.includes(m.id),
+    );
     if (menu) return { kind: 'text', text: menu.text, sourceLabel: menu.title };
     return {
       kind: 'manual',

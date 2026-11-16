@@ -19,6 +19,8 @@ export type Question = {
   id: string;
   topic: QuestionTopic;
   ingredientId?: string;
+  /** Short German label for the question button. */
+  label: string;
   phrase: Phrase;
 };
 

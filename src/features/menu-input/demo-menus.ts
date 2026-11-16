@@ -5,8 +5,8 @@
 export type DemoMenu = {
   id: string;
   title: string;
-  /** Size in bytes of the original image, used to recognise an uploaded copy. */
-  fileSize: number;
+  /** Size in bytes of the original image, used to recognise an uploaded copy (none = text-only demo). */
+  fileSize?: number;
   text: string;
 };
 
@@ -54,4 +54,22 @@ Salade Fraîcheur 19,90
 Salade, pamplemousse, champignons de Paris, avocat, tomates, radis, concombre`,
 };
 
-export const DEMO_MENUS: DemoMenu[] = [CHOUCHOU_MENU];
+/** Text-only example that shows all three colours (incl. dishes with stated peanuts). */
+export const BRASSERIE_MENU: DemoMenu = {
+  id: 'brasserie',
+  title: 'Beispielkarte Brasserie',
+  text: `PLATS
+Steak frites maison 19,50
+Poulet aux cacahuètes, riz 16,90
+Ratatouille provençale 13,50
+Quiche lorraine, salade verte 12,90
+Moules marinières 17,00
+Confit de canard, pommes sarladaises 21,00
+DESSERTS
+Crème brûlée 7,50
+Mousse au chocolat 7,00
+Crêpe sans gluten au sucre 6,50
+Salade de fruits frais 6,00`,
+};
+
+export const DEMO_MENUS: DemoMenu[] = [CHOUCHOU_MENU, BRASSERIE_MENU];

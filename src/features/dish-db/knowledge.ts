@@ -64,7 +64,9 @@ export class CuratedDishKnowledge implements DishKnowledge {
     let bestLength = 0;
     for (const candidate of this.dishNames) {
       const score =
-        candidate.normalized === normalized ? 1 : tokenSimilarity(nameTokens, candidate.tokens);
+        candidate.normalized === normalized
+          ? 1
+          : Math.max(tokenSimilarity(nameTokens, candidate.tokens), containmentScore(nameTokens, candidate.tokens));
       const better =
         !best || score > best.score || (score === best.score && candidate.normalized.length > bestLength);
       if (better) {
@@ -119,6 +121,16 @@ function tokenSimilarity(a: string[], b: string[]): number {
     }
   }
   return matches / Math.max(a.length, b.length);
+}
+
+/**
+ * Menu names often add sides or details ("Quiche lorraine, salade verte").
+ * If every word of a known dish name appears in the menu name, it is a good match.
+ */
+function containmentScore(nameTokens: string[], candidateTokens: string[]): number {
+  if (candidateTokens.length === 0) return 0;
+  const contained = candidateTokens.every((token) => nameTokens.some((other) => tokensEqual(token, other)));
+  return contained ? 0.7 + 0.3 * (candidateTokens.length / nameTokens.length) : 0;
 }
 
 function tokensEqual(a: string, b: string): boolean {
