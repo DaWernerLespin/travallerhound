@@ -1,56 +1,49 @@
-# Welcome to your Expo app 👋
+# TravAllerHound – MVP
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Allergy-safe food ordering in France for German-speaking travellers with a peanut or lupin allergy.
+Local demo app for the Startup Engineering course (Expo Go, Android). Fully offline, no backend.
 
-## Get started
-
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Run it
 
 ```bash
-npm run reset-project
+npm install          # once (after pulling)
+npx expo start       # scan the QR code with Expo Go on the phone
 ```
 
-This command will move the starter code to the **example** directory and create a blank **src/app** directory where you can start developing.
+Phone and laptop must be on the same Wi-Fi. If it doesn't connect: `npx expo start --tunnel`.
 
-### Other setup steps
+## Checks
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+```bash
+npm test             # rating, matching and chat logic
+npx tsc --noEmit     # types
+npx expo lint        # lint
+```
 
-## Learn more
+## Demo flow
 
-To learn more about developing your project with Expo, look at the following resources:
+1. **Speisekarte prüfen** → pick **Chouchou, Paris** (real menu) or **Beispielkarte Brasserie** (shows all colours).
+   Uploading `assets/demo/chouchou-menu.png` also loads the Chouchou menu.
+2. Watch the scan: every dish starts red and turns orange/red once checked.
+3. Open a dish → **So komme ich darauf** shows where each risk comes from (dish name, menu, typical recipe, staff).
+4. **Personal fragen** → pick a question, hand the phone to the "staff", they tap a French answer.
+   Confirming allergens + cross-contamination makes the dish green ("Vom Personal bestätigt").
+5. **Bestellen** → order notice (monitoring is not active in the MVP).
+6. **Meine sichere Karte** → German list of everything that isn't red.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Structure
 
-## Join the community
+| Folder | What |
+|---|---|
+| `src/app/` | Screens (Expo Router) |
+| `src/components/` | Presentational UI |
+| `src/features/dish-db/` | Curated dishes + ingredients with peanut/lupin risk, matching |
+| `src/features/dish-rating/` | Safety rating (pure TypeScript, tested) |
+| `src/features/menu-input/` | Menu text parsing, demo menus, file/photo input |
+| `src/features/staff-chat/` | Questions, French quick replies, phrase-table translation |
+| `src/features/menu-session/` | In-memory session state, scan animation timing |
 
-Join our community of developers creating universal apps.
+Swappable parts (for AI/OCR later) are interfaces with one line to change each:
+`menu-input/index.ts` (OCR), `staff-chat/index.ts` (translation, staff replies), `dish-db/index.ts` (dish knowledge).
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Design decisions and known limits: [`docs/decisions.md`](docs/decisions.md).
