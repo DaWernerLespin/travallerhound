@@ -6,7 +6,7 @@ import { EMPTY_VERDICT } from './types';
 export const ALLERGEN_LABEL: Record<Allergen, string> = { peanut: 'Erdnuss', lupin: 'Lupine' };
 
 const SOURCE_LABEL: Record<FindingSource, string> = {
-  db: 'Typisches Rezept',
+  db: 'Typische Zutaten',
   menu: 'Speisekarte',
   name: 'Name des Gerichts',
   staff: 'Personal',

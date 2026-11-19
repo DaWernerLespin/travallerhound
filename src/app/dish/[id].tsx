@@ -3,11 +3,15 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppText } from '@/components/app-text';
+import { IngredientChips } from '@/components/ingredient-chips';
 import { PrimaryButton } from '@/components/primary-button';
+import { RatingExplainer } from '@/components/rating-explainer';
 import { StatusBadge } from '@/components/status-badge';
 import { TopBar } from '@/components/top-bar';
 import { colors, fonts, radius } from '@/constants/theme';
 import { dishKnowledge } from '@/features/dish-db';
+import { buildRatingInput } from '@/features/dish-rating/build-input';
+import { dishIngredients } from '@/features/dish-rating/dish-ingredients';
 import { sourceLabel } from '@/features/dish-rating/rate-dish';
 import type { Finding, FindingSource } from '@/features/dish-rating/types';
 import { useMenuSession, useRatings } from '@/features/menu-session/session-context';
@@ -32,7 +36,7 @@ export default function DishDetailScreen() {
 
   const dish = item.match?.dish;
   const stated = rating.findings.some((f) => f.level === 'contains' && f.source !== 'staff');
-  const recipe = (dish?.ingredientIds ?? []).map((ingredientId) => dishKnowledge.ingredientById(ingredientId)?.de).filter(Boolean);
+  const ingredients = dishIngredients(buildRatingInput(item, dishKnowledge));
 
   return (
     <SafeAreaView style={styles.screen}>
@@ -41,7 +45,6 @@ export default function DishDetailScreen() {
         {item.section && <AppText variant="eyebrow">{item.section}</AppText>}
         <AppText variant="display">{item.name}</AppText>
         <Text style={styles.german}>{dish ? dish.de : 'Unbekanntes Gericht'}</Text>
-        {dish && <Text style={styles.description}>{dish.description}</Text>}
 
         <View style={styles.statusBox}>
           <StatusBadge status={rating.status} long />
@@ -64,17 +67,17 @@ export default function DishDetailScreen() {
           {rating.findings.length === 0 && <Text style={styles.body}>Keine Hinweise auf Erdnuss oder Lupine gefunden.</Text>}
         </Section>
 
-        {item.listedItems.length > 0 && (
-          <Section title="Laut Speisekarte">
-            <Text style={styles.body}>{item.listedItems.join(', ')}</Text>
+        {ingredients.length > 0 && (
+          <Section title="Zutaten">
+            <IngredientChips entries={ingredients} />
+            {item.listedItems.length > 0 && <Text style={styles.note}>Auf der Karte: {item.listedItems.join(', ')}</Text>}
+            {dish && <Text style={styles.note}>Ohne „Karte“: typische Zutaten aus meiner Datenbank – jedes Restaurant kocht anders.</Text>}
           </Section>
         )}
-        {recipe.length > 0 && (
-          <Section title="Typisches Rezept">
-            <Text style={styles.body}>{recipe.join(', ')}</Text>
-            <Text style={styles.note}>Typische Zutaten aus unserer Datenbank – jedes Restaurant kocht anders.</Text>
-          </Section>
-        )}
+
+        <View style={styles.explainer}>
+          <RatingExplainer />
+        </View>
       </ScrollView>
 
       <View style={styles.footer}>
@@ -125,7 +128,6 @@ const styles = StyleSheet.create({
   pad: { padding: 24 },
   content: { paddingHorizontal: 24, paddingTop: 12, paddingBottom: 24 },
   german: { fontFamily: fonts.bodyBold, fontSize: 16, color: colors.ink, marginTop: 8 },
-  description: { fontFamily: fonts.body, fontSize: 14, color: colors.muted, marginTop: 4 },
   statusBox: {
     marginTop: 18,
     backgroundColor: colors.paper,
@@ -144,7 +146,8 @@ const styles = StyleSheet.create({
   findingDot: { width: 8, height: 8, borderRadius: 4, marginTop: 6 },
   findingText: { flex: 1, fontFamily: fonts.body, fontSize: 13, lineHeight: 19, color: colors.ink },
   body: { fontFamily: fonts.body, fontSize: 14, lineHeight: 21, color: colors.ink },
-  note: { fontFamily: fonts.body, fontSize: 12, color: colors.muted },
+  note: { fontFamily: fonts.body, fontSize: 12, lineHeight: 17, color: colors.muted },
+  explainer: { marginTop: 18 },
   footer: { paddingHorizontal: 24, paddingBottom: 16, paddingTop: 8, gap: 10 },
   warning: { fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.red, textAlign: 'center' },
 });

@@ -36,7 +36,8 @@ npx expo lint        # lint
 4. **Personal fragen** → pick a question, hand the phone to the "staff", they tap a French answer.
    Confirming allergens + cross-contamination makes the dish green ("Vom Personal bestätigt").
 5. **Bestellen** → order notice (monitoring is not active in the MVP).
-6. **Meine sichere Karte** → German list of everything that isn't red.
+6. After the scan the list is grouped by menu section (collapsible) and sorted safest first;
+   "… mit Risiko ausblenden" hides red dishes (former "Meine sichere Karte").
 
 ## Structure
 
