@@ -15,6 +15,7 @@ import { dishIngredients } from '@/features/dish-rating/dish-ingredients';
 import { sourceLabel } from '@/features/dish-rating/rate-dish';
 import type { Finding, FindingSource } from '@/features/dish-rating/types';
 import { germanLabel } from '@/features/menu-input/german-label';
+import { sectionTitle } from '@/features/menu-input/section-names';
 import { useMenuSession, useRatings } from '@/features/menu-session/session-context';
 
 const SOURCE_ORDER: FindingSource[] = ['staff', 'name', 'menu', 'db'];
@@ -35,7 +36,6 @@ export default function DishDetailScreen() {
     );
   }
 
-  const dish = item.match?.dish;
   const stated = rating.findings.some((f) => f.level === 'contains' && f.source !== 'staff');
   const ingredients = dishIngredients(buildRatingInput(item, dishKnowledge));
 
@@ -43,7 +43,7 @@ export default function DishDetailScreen() {
     <SafeAreaView style={styles.screen}>
       <TopBar onBack={() => router.back()} />
       <ScrollView contentContainerStyle={styles.content}>
-        {item.section && <AppText variant="eyebrow">{item.section}</AppText>}
+        {item.section && <AppText variant="eyebrow">{sectionTitle(item.section)}</AppText>}
         <AppText variant="display">{item.name}</AppText>
         <Text style={styles.german}>{germanLabel(item)}</Text>
 
@@ -78,7 +78,9 @@ export default function DishDetailScreen() {
           <Section title="Zutaten">
             <IngredientChips entries={ingredients} />
             {item.listedItems.length > 0 && <Text style={styles.note}>Auf der Karte: {item.listedItems.join(', ')}</Text>}
-            {dish && <Text style={styles.note}>Ohne „Karte“: typische Zutaten aus meiner Datenbank – jedes Restaurant kocht anders.</Text>}
+            {ingredients.some((entry) => !entry.onMenu) && (
+              <Text style={styles.note}>* typische Zutaten aus meiner Datenbank – jedes Restaurant kocht anders.</Text>
+            )}
           </Section>
         )}
 

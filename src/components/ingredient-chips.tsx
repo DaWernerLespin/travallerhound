@@ -10,7 +10,7 @@ const LOOK: Record<IngredientEntry['level'], { color: string; background: string
   none: { color: colors.ink, background: colors.paper },
 };
 
-/** Ingredients as chips, coloured by risk; menu-listed ones are marked with "Karte". */
+/** Ingredients as chips, coloured by risk; typical (database-only) ones are marked with "*". */
 export function IngredientChips({ entries }: { entries: IngredientEntry[] }) {
   return (
     <View style={styles.wrap}>
@@ -20,8 +20,8 @@ export function IngredientChips({ entries }: { entries: IngredientEntry[] }) {
           <View key={entry.key} style={[styles.chip, { backgroundColor: look.background }]}>
             <Text style={[styles.label, { color: look.color }]}>
               {entry.level === 'unknown' ? `${entry.label} (?)` : entry.label}
+              {!entry.onMenu && '*'}
             </Text>
-            {entry.onMenu && <Text style={styles.tag}>Karte</Text>}
           </View>
         );
       })}
@@ -42,5 +42,4 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   label: { fontFamily: fonts.bodyMedium, fontSize: 13 },
-  tag: { fontFamily: fonts.bodyBold, fontSize: 9, color: colors.muted, textTransform: 'uppercase', letterSpacing: 0.6 },
 });

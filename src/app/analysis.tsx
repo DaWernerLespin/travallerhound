@@ -13,6 +13,7 @@ import { TopBar } from '@/components/top-bar';
 import { colors, fonts } from '@/constants/theme';
 import type { DishStatus } from '@/features/dish-rating/types';
 import { germanLabel } from '@/features/menu-input/german-label';
+import { sectionTitle } from '@/features/menu-input/section-names';
 import type { MenuItem } from '@/features/menu-input/types';
 import { groupDishes } from '@/features/menu-session/group-dishes';
 import { useMenuSession } from '@/features/menu-session/session-context';
@@ -77,7 +78,7 @@ export default function AnalysisScreen() {
               const state = scan.states[item.id];
               return (
                 <View key={item.id}>
-                  {header && <Text style={styles.section}>{header}</Text>}
+                  {header && <Text style={styles.section}>{sectionTitle(header)}</Text>}
                   <Dish item={item} number={index + 1} status={state.status} checking={state.checking} />
                 </View>
               );
@@ -102,7 +103,7 @@ export default function AnalysisScreen() {
             {groups.map((group) => (
               <CollapsibleGroup
                 key={group.title}
-                title={group.title}
+                title={sectionTitle(group.title)}
                 subtitle={`${group.entries.length} ${group.entries.length === 1 ? 'Gericht' : 'Gerichte'}`}
                 initiallyOpen
               >
