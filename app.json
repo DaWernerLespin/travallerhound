@@ -7,9 +7,6 @@
     "icon": "./assets/images/icon.png",
     "scheme": "travallerhound",
     "userInterfaceStyle": "light",
-    "ios": {
-      "icon": "./assets/expo.icon"
-    },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#142f36",
@@ -30,7 +27,7 @@
         {
           "backgroundColor": "#142f36",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "imageWidth": 200
         }
       ],
       [
