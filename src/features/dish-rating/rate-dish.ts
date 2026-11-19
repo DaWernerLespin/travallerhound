@@ -20,6 +20,7 @@ export function sourceLabel(source: FindingSource): string {
  * Safety rating for one dish. Safety first:
  * - "contains" can never be overridden, not even by the staff.
  * - Only the staff can make a dish safe (no peanut, no lupin, no cross-contamination).
+ * - If the staff can't rule something out, the dish is a risk: after the conversation it is either safe or not.
  */
 export function rateDish(input: RatingInput, verdict: StaffVerdict = EMPTY_VERDICT): DishRating {
   const findings = collectFindings(input, verdict);
@@ -33,6 +34,11 @@ export function rateDish(input: RatingInput, verdict: StaffVerdict = EMPTY_VERDI
   const staffPresent = findings.find((f) => f.source === 'staff' && f.level === 'contains');
   if (staffPresent) {
     return { status: 'unsafe', reason: staffPresent.text, findings, checks };
+  }
+
+  const staffUnsure = findings.find((f) => f.source === 'staff' && f.level === 'unknown');
+  if (staffUnsure) {
+    return { status: 'unsafe', reason: `${staffUnsure.text} Deshalb gebe ich das Gericht nicht frei.`, findings, checks };
   }
 
   // A category like "Burgers" can't be rated – not even after staff answers, since the actual dish stays open.
@@ -53,7 +59,7 @@ export function rateDish(input: RatingInput, verdict: StaffVerdict = EMPTY_VERDI
     return {
       status: 'undefined',
       reason:
-        'Dieses Gericht kenne ich nicht – die Karte nennt evtl. nicht alle Zutaten. Bitte frag unbedingt beim Personal nach.',
+        'Dieses Gericht kenne ich nicht und die Karte nennt evtl. nicht alle Zutaten. Bitte frag unbedingt beim Personal nach.',
       findings,
       checks,
     };
@@ -119,7 +125,7 @@ function collectFindings(input: RatingInput, verdict: StaffVerdict): Finding[] {
     findings.push({
       source: 'menu',
       level: 'unknown',
-      text: `Die Zutat „${item}“ kenne ich nicht – bitte beim Personal nachfragen.`,
+      text: `Die Zutat „${item}“ kenne ich nicht. Bitte beim Personal nachfragen.`,
     });
   }
 
@@ -136,6 +142,10 @@ function ingredientText(ingredient: Ingredient, allergen: Allergen, level: 'hidd
 
 function staffFindings(verdict: StaffVerdict): Finding[] {
   const findings: Finding[] = [];
+  const unsureIngredients = Object.values(verdict.ingredients).filter((answer) => answer === 'unknown').length;
+  if (unsureIngredients > 0) {
+    findings.push({ source: 'staff', level: 'unknown', text: 'Das Personal kann ein Risiko bei einer Zutat nicht ausschließen.' });
+  }
   for (const allergen of ALLERGENS) {
     const answer = verdict[allergen];
     if (answer === 'present') {

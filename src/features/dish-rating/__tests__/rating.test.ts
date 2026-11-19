@@ -62,7 +62,7 @@ describe('rating', () => {
 
   it('only becomes safe when staff confirms everything', () => {
     expect(rateMenuLine('Ratatouille 12,00', CONFIRMED).rating.status).toBe('safe');
-    expect(rateMenuLine('Ratatouille 12,00', { ...CONFIRMED, crossContamination: 'unknown' }).rating.status).toBe('undefined');
+    expect(rateMenuLine('Ratatouille 12,00', { ...CONFIRMED, crossContamination: 'unknown' }).rating.status).toBe('unsafe');
     expect(rateMenuLine('Ratatouille 12,00', { ...CONFIRMED, crossContamination: 'present' }).rating.status).toBe('unsafe');
   });
 
@@ -70,9 +70,13 @@ describe('rating', () => {
     expect(rateMenuLine('Poulet aux cacahuètes 14,50', CONFIRMED).rating.status).toBe('unsafe');
   });
 
-  it('is not safe when staff is unsure about an ingredient', () => {
+  it('is a risk when staff is unsure about an ingredient', () => {
     const verdict = { ...CONFIRMED, ingredients: { frites: 'unknown' as const } };
-    expect(rateMenuLine('Steak frites 19,90', verdict).rating.status).not.toBe('safe');
+    expect(rateMenuLine('Steak frites 19,90', verdict).rating.status).toBe('unsafe');
+  });
+
+  it('is a risk as soon as staff cannot rule out an allergen, even before all questions are answered', () => {
+    expect(rateMenuLine('Ratatouille 12,00', { ...EMPTY_VERDICT, peanut: 'unknown', lupin: 'unknown' }).rating.status).toBe('unsafe');
   });
 
   it('adds menu ingredients to the DB recipe', () => {

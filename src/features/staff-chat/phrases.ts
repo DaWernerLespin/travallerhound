@@ -9,9 +9,9 @@ const PHRASES: Record<string, Template> = {
   /** Sent once per restaurant visit, before the first question: severity + a friendly, grateful tone. */
   intro: {
     de: () =>
-      'Guten Tag! Ihre Karte sieht köstlich aus und ich würde sehr gerne bei Ihnen essen. Ich habe eine schwere Allergie gegen Erdnüsse und Lupinen: Schon kleinste Spuren können bei mir einen lebensbedrohlichen allergischen Schock auslösen. Ich habe ein Notfallmedikament dabei. Ich stelle Ihnen ein paar kurze Fragen zu den Gerichten – vielen Dank für Ihre Hilfe!',
+      'Guten Tag! Ihre Karte sieht köstlich aus und ich würde sehr gerne bei Ihnen essen. Ich habe eine schwere Allergie gegen Erdnüsse und Lupinen: Schon kleinste Spuren können bei mir einen lebensbedrohlichen allergischen Schock auslösen. Ich habe ein Notfallmedikament dabei. Ich stelle Ihnen ein paar kurze Fragen zu den Gerichten. Vielen Dank für Ihre Hilfe!',
     fr: () =>
-      'Bonjour ! Votre carte a l’air délicieuse et j’aimerais beaucoup manger chez vous. J’ai une allergie grave aux arachides et au lupin : même des traces infimes peuvent provoquer chez moi un choc allergique mortel. J’ai un médicament d’urgence sur moi. Je vais vous poser quelques questions rapides sur les plats – merci beaucoup pour votre aide !',
+      'Bonjour ! Votre carte a l’air délicieuse et j’aimerais beaucoup manger chez vous. J’ai une allergie grave aux arachides et au lupin : même des traces infimes peuvent provoquer chez moi un choc allergique mortel. J’ai un médicament d’urgence sur moi. Je vais vous poser quelques questions rapides sur les plats. Merci beaucoup pour votre aide !',
   },
   ask_allergens: {
     de: (p) => `Enthält „${p.dish}“ Erdnüsse, Erdnussöl, Lupinen oder Lupinenmehl?`,
@@ -19,9 +19,9 @@ const PHRASES: Record<string, Template> = {
   },
   ask_cross: {
     de: (p) =>
-      `Kann „${p.dish}“ ohne Kreuzkontamination zubereitet werden – mit sauberen Utensilien und ohne Öl, das mit Erdnüssen in Kontakt gekommen ist?`,
+      `Kann „${p.dish}“ ohne Kreuzkontamination zubereitet werden, mit sauberen Utensilien und ohne Öl, das mit Erdnüssen in Kontakt gekommen ist?`,
     fr: (p) =>
-      `Pouvez-vous préparer « ${p.dish} » sans contamination croisée – avec des ustensiles propres et sans huile ayant été en contact avec des arachides ?`,
+      `Pouvez-vous préparer « ${p.dish} » sans contamination croisée, avec des ustensiles propres et sans huile ayant été en contact avec des arachides ?`,
   },
   ask_ingredient_peanut: {
     de: (p) => `Wird „${p.ingredientDe}“ mit Erdnüssen oder Erdnussöl zubereitet?`,

@@ -4,6 +4,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View, type ScrollViewInstance 
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ChatBubble } from '@/components/chat-bubble';
+import { CollapsibleGroup } from '@/components/collapsible-group';
 import { Hound } from '@/components/hound';
 import { Icon } from '@/components/icon';
 import { PrimaryButton } from '@/components/primary-button';
@@ -63,8 +64,8 @@ export default function ChatScreen() {
         {chat.messages.length === 0 && (
           <Text style={styles.intro}>
             {chat.introduced
-              ? 'Deine Allergie habe ich dem Personal schon erklärt. Jetzt geht es nur noch um dieses Gericht – wähle unten eine Frage.'
-              : 'Wähle unten eine Frage. Ich erkläre dem Personal zuerst freundlich deine Allergie und übersetze alles ins Französische – dann gibst du ihm dein Handy.'}
+              ? 'Deine Allergie habe ich dem Personal schon erklärt. Jetzt geht es nur noch um dieses Gericht. Wähle unten eine Frage.'
+              : 'Wähle unten eine Frage. Ich erkläre dem Personal zuerst freundlich deine Allergie und übersetze alles ins Französische. Dann gibst du ihm dein Handy.'}
           </Text>
         )}
         {chat.messages.map((message) => (
@@ -74,7 +75,7 @@ export default function ChatScreen() {
       </ScrollView>
 
       {staffMode ? (
-        <StaffPanel replies={chat.staffReplies} onReply={chat.reply} />
+        <StaffPanel key={chat.activeQuestion?.id} replies={chat.staffReplies} onReply={chat.reply} />
       ) : (
         <View style={styles.footer}>
           {status === 'safe' && !chat.ordered && <PrimaryButton label="Bestellen" icon="check" onPress={() => setNoticeVisible(true)} />}
@@ -95,13 +96,22 @@ export default function ChatScreen() {
               <PrimaryButton label="Anderes Gericht wählen" icon="arrow" variant="outline" onPress={() => router.back()} />
             </>
           )}
-          {status !== 'safe' && status !== 'unsafe' &&
-            chat.openQuestions.map((question) => (
-              <Pressable key={question.id} onPress={() => chat.ask(question)} style={({ pressed }) => [styles.question, pressed && styles.pressed]}>
-                <Text style={styles.questionText}>{question.label}</Text>
-                <Icon name="chevron" size={18} color={colors.coral} />
-              </Pressable>
-            ))}
+          {status !== 'safe' && status !== 'unsafe' && chat.openQuestions.length > 0 && (
+            <CollapsibleGroup
+              title="Frage an das Personal"
+              subtitle={`${chat.openQuestions.length} ${chat.openQuestions.length === 1 ? 'Frage' : 'Fragen'} offen`}
+              initiallyOpen
+            >
+              <View style={styles.questions}>
+                {chat.openQuestions.map((question) => (
+                  <Pressable key={question.id} onPress={() => chat.ask(question)} style={({ pressed }) => [styles.question, pressed && styles.pressed]}>
+                    <Text style={styles.questionText}>{question.label}</Text>
+                    <Icon name="chevron" size={18} color={colors.coral} />
+                  </Pressable>
+                ))}
+              </View>
+            </CollapsibleGroup>
+          )}
           {chat.ordered && <PrimaryButton label="Zurück zur Karte" icon="arrow" variant="outline" onPress={() => router.dismissTo('/analysis')} />}
         </View>
       )}
@@ -124,17 +134,25 @@ export default function ChatScreen() {
   );
 }
 
-/** Shown while the phone is with the staff: French only, big tap targets. */
+/** Shown while the phone is with the staff: French only, big tap targets. Can be folded away to read the chat. */
 function StaffPanel({ replies, onReply }: { replies: StaffReply[]; onReply: (reply: StaffReply) => void }) {
+  const [open, setOpen] = useState(true);
   const texts = useRenderedPhrases(
     replies.map((r) => r.phrase),
     'fr',
   );
   return (
     <View style={styles.staffPanel}>
-      <Text style={styles.staffHint}>📱 Gib dem Personal jetzt dein Handy.</Text>
-      <Text style={styles.staffTitle}>Pour le personnel : touchez votre réponse.</Text>
-      {replies.map((reply, index) => (
+      <Pressable onPress={() => setOpen((value) => !value)} style={styles.staffHead} accessibilityRole="button" accessibilityState={{ expanded: open }}>
+        <View style={styles.flex}>
+          <Text style={styles.staffHint}>📱 Gib dem Personal jetzt dein Handy.</Text>
+          <Text style={styles.staffTitle}>Pour le personnel : touchez votre réponse.</Text>
+        </View>
+        <View style={open ? styles.chevronDown : styles.chevronUp}>
+          <Icon name="chevron" size={18} color={colors.cream} />
+        </View>
+      </Pressable>
+      {open && replies.map((reply, index) => (
         <Pressable
           key={reply.id}
           onPress={() => onReply(reply)}
@@ -155,7 +173,7 @@ function ResultBanner({ status, ordered, watched }: { status: DishStatus; ordere
         <Icon name="check" size={22} color={colors.green} />
         <View style={styles.flex}>
           <Text style={styles.bannerTitle}>Bestellt. Guten Appetit!</Text>
-          {!watched && <Text style={styles.bannerText}>Ohne Überwachung – deine Begleitung ist für dich da.</Text>}
+          {!watched && <Text style={styles.bannerText}>Ohne Überwachung. Deine Begleitung ist für dich da.</Text>}
         </View>
       </View>
     );
@@ -221,14 +239,18 @@ const styles = StyleSheet.create({
   questionText: { flex: 1, fontFamily: fonts.bodyBold, fontSize: 14, color: colors.ink },
   pressed: { opacity: 0.6 },
   stuck: { fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.orangeText, textAlign: 'center' },
-  staffPanel: { backgroundColor: colors.ink, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 18, gap: 8 },
+  staffPanel: { backgroundColor: colors.ink, borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingHorizontal: 16, paddingVertical: 14, gap: 7 },
+  staffHead: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  chevronUp: { transform: [{ rotate: '-90deg' }] },
+  chevronDown: { transform: [{ rotate: '90deg' }] },
   staffHint: { fontFamily: fonts.bodyMedium, fontSize: 12, color: colors.yellow },
-  staffTitle: { fontFamily: fonts.display, fontSize: 17, color: colors.cream, marginBottom: 4 },
-  reply: { borderRadius: 14, paddingVertical: 13, paddingHorizontal: 14 },
+  staffTitle: { fontFamily: fonts.display, fontSize: 16, color: colors.cream, marginTop: 2 },
+  reply: { borderRadius: 14, paddingVertical: 10, paddingHorizontal: 14 },
+  questions: { gap: 8 },
   positive: { backgroundColor: colors.greenSoft },
   negative: { backgroundColor: colors.redSoft },
   neutral: { backgroundColor: colors.paper },
-  replyText: { fontFamily: fonts.bodyBold, fontSize: 15, color: colors.ink },
+  replyText: { fontFamily: fonts.bodyBold, fontSize: 14, color: colors.ink },
   banner: { flexDirection: 'row', gap: 12, borderRadius: radius.card, padding: 14, marginTop: 12, alignItems: 'flex-start' },
   bannerSafe: { backgroundColor: colors.greenSoft },
   bannerUnsafe: { backgroundColor: colors.redSoft },

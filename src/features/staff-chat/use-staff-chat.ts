@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { EMPTY_VERDICT, type StaffVerdict } from '@/features/dish-rating/types';
 import { baseRating, useMenuSession, useRatings } from '@/features/menu-session/session-context';
@@ -27,12 +27,18 @@ export function useStaffChat(itemId: string) {
     session.addMessage(itemId, { id: `m${++messageCounter}`, side, fr, de });
   };
 
+  // Explain the allergy right away when the first chat of a restaurant visit opens, and only once per visit.
+  const introSent = useRef(false);
+  const needsIntro = !session.introduced && openQuestions.length > 0 && !session.ordered[itemId];
+  useEffect(() => {
+    if (!needsIntro || introSent.current) return;
+    introSent.current = true;
+    session.markIntroduced();
+    void send('traveler', { id: 'intro' });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [needsIntro]);
+
   const ask = async (question: Question) => {
-    // Explain the allergy only once per restaurant, not again for every dish.
-    if (!session.introduced) {
-      session.markIntroduced();
-      await send('traveler', { id: 'intro' });
-    }
     await send('traveler', question.phrase);
     setActiveQuestion(question);
   };
