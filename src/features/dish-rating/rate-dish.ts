@@ -1,4 +1,4 @@
-import { ALLERGENS, type Allergen, type Ingredient } from '@/features/dish-db/types';
+import { ALLERGENS, type Allergen, type GenericTerm, type Ingredient } from '@/features/dish-db/types';
 
 import type { DishRating, Finding, FindingSource, RatingInput, StaffVerdict } from './types';
 import { EMPTY_VERDICT } from './types';
@@ -35,6 +35,11 @@ export function rateDish(input: RatingInput, verdict: StaffVerdict = EMPTY_VERDI
     return { status: 'unsafe', reason: staffPresent.text, findings, checks };
   }
 
+  // A category like "Burgers" can't be rated – not even after staff answers, since the actual dish stays open.
+  if (input.generic) {
+    return { status: 'undefined', reason: genericReason(input.generic), findings, checks };
+  }
+
   if (isConfirmedByStaff(verdict)) {
     return {
       status: 'safe',
@@ -69,6 +74,10 @@ export function rateDish(input: RatingInput, verdict: StaffVerdict = EMPTY_VERDI
 }
 
 /** Safe only if the staff confirmed all three and was not unsure about any ingredient. */
+export function genericReason(term: GenericTerm): string {
+  return `„${term.fr}“ bedeutet „${term.meaning}“ und ist zu allgemein formuliert, um eine Aussage zu treffen. Frag beim Personal, was genau serviert wird.`;
+}
+
 export function isConfirmedByStaff(verdict: StaffVerdict): boolean {
   const unsureAboutIngredient = Object.values(verdict.ingredients).some((answer) => answer !== 'absent');
   return (
@@ -148,7 +157,13 @@ function staffFindings(verdict: StaffVerdict): Finding[] {
 }
 
 function buildChecks(input: RatingInput, findings: Finding[]): string[] {
-  const checks = [input.dbDish ? `Rezept „${input.dbDish.fr}“ gefunden` : 'Suche das Gericht in der Datenbank'];
+  const checks = [
+    input.generic
+      ? `„${input.generic.fr}“ ist ein Oberbegriff`
+      : input.dbDish
+        ? `Rezept „${input.dbDish.fr}“ gefunden`
+        : 'Suche das Gericht in der Datenbank',
+  ];
   for (const finding of findings) {
     if (!finding.ingredient || !finding.allergen || finding.source === 'staff') continue;
     checks.push(`Prüfe ${finding.ingredient.de} auf ${ALLERGEN_LABEL[finding.allergen]}`);

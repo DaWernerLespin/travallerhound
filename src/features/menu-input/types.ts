@@ -1,5 +1,5 @@
 import type { DishMatch } from '@/features/dish-db/knowledge';
-import type { Ingredient } from '@/features/dish-db/types';
+import type { GenericTerm, Ingredient } from '@/features/dish-db/types';
 
 export type MenuTag = 'vegetarian';
 
@@ -12,6 +12,8 @@ export type MenuItem = {
   price?: string;
   tags: MenuTag[];
   match: DishMatch | null;
+  /** Set when the entry is a category ("Burgers") – then `match` is always null. */
+  generic: GenericTerm | null;
   /** Ingredient items listed on the menu, as written. */
   listedItems: string[];
   menuIngredients: Ingredient[];

@@ -12,6 +12,7 @@ import { ScanArea } from '@/components/scan-area';
 import { TopBar } from '@/components/top-bar';
 import { colors, fonts } from '@/constants/theme';
 import type { DishStatus } from '@/features/dish-rating/types';
+import { germanLabel } from '@/features/menu-input/german-label';
 import type { MenuItem } from '@/features/menu-input/types';
 import { groupDishes } from '@/features/menu-session/group-dishes';
 import { useMenuSession } from '@/features/menu-session/session-context';
@@ -125,7 +126,7 @@ function Dish({ item, number, status, checking }: { item: MenuItem; number: numb
     <DishCard
       number={number}
       title={item.name}
-      subtitle={[item.match?.dish.de ?? 'Unbekanntes Gericht', item.price && `${item.price} €`].filter(Boolean).join(' · ')}
+      subtitle={[germanLabel(item), item.price && `${item.price} €`].filter(Boolean).join(' · ')}
       status={status}
       checking={checking}
       confirmed={status === 'safe'}

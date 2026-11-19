@@ -1,4 +1,4 @@
-import type { Allergen, Dish, Ingredient, RiskLevel } from '@/features/dish-db/types';
+import type { Allergen, Dish, GenericTerm, Ingredient, RiskLevel } from '@/features/dish-db/types';
 
 export type DishStatus = 'unsafe' | 'undefined' | 'likely_safe' | 'safe';
 
@@ -36,6 +36,8 @@ export const EMPTY_VERDICT: StaffVerdict = {
 /** Everything the rating needs about one dish on the menu. */
 export type RatingInput = {
   dbDish?: Dish;
+  /** Menu entry is a category, not a dish. */
+  generic?: GenericTerm | null;
   /** Resolved ingredients of dbDish. */
   dbIngredients: Ingredient[];
   menuIngredients: Ingredient[];

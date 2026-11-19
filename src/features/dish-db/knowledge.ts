@@ -1,8 +1,9 @@
 import { containsPhrase, editDistance, normalizeFrench, tokens } from '@/lib/text';
 
 import { DISHES } from './data/dishes';
+import { GENERIC_TERMS } from './data/generic-terms';
 import { INGREDIENTS } from './data/ingredients';
-import type { Dish, Ingredient } from './types';
+import type { Dish, GenericTerm, Ingredient } from './types';
 
 export type DishMatch = { dish: Dish; score: number };
 
@@ -18,6 +19,8 @@ export type IngredientExtraction = {
  */
 export interface DishKnowledge {
   matchDish(menuName: string): DishMatch | null;
+  /** Generic category term ("Burgers", "Plat du jour") if the menu name is nothing but that. */
+  matchGeneric(menuName: string): GenericTerm | null;
   /** Ingredients mentioned anywhere in a free text (e.g. a dish name). */
   ingredientsInText(text: string): Ingredient[];
   /** Map a list of menu ingredient items (e.g. "Jambon", "oeuf dur") to known ingredients. */
@@ -27,14 +30,22 @@ export interface DishKnowledge {
 
 const MATCH_THRESHOLD = 0.6;
 
+/** Words that may surround a generic term without making it a specific dish. */
+// Run through tokens() so the words get the same singular form as menu text ("choix" → "choi").
+const GENERIC_FILLER = new Set(tokens('choix pers personnes pieces pcs'));
+
 type Phrase = { normalized: string; ingredient: Ingredient };
 
 export class CuratedDishKnowledge implements DishKnowledge {
   private readonly ingredientIndex = new Map<string, Ingredient>();
   private readonly phrases: Phrase[];
   private readonly dishNames: { dish: Dish; tokens: string[]; normalized: string }[];
+  private readonly genericNames: { term: GenericTerm; key: string }[];
 
-  constructor(dishes: Dish[] = DISHES, ingredients: Ingredient[] = INGREDIENTS) {
+  constructor(dishes: Dish[] = DISHES, ingredients: Ingredient[] = INGREDIENTS, genericTerms: GenericTerm[] = GENERIC_TERMS) {
+    this.genericNames = genericTerms.flatMap((term) =>
+      [term.fr, ...term.aliases].map((name) => ({ term, key: genericKey(name) })),
+    );
     for (const ingredient of ingredients) this.ingredientIndex.set(ingredient.id, ingredient);
     this.phrases = ingredients
       .flatMap((ingredient) =>
@@ -49,6 +60,12 @@ export class CuratedDishKnowledge implements DishKnowledge {
         return { dish, normalized, tokens: tokens(normalized) };
       }),
     );
+  }
+
+  matchGeneric(menuName: string): GenericTerm | null {
+    const key = genericKey(menuName);
+    if (!key) return null;
+    return this.genericNames.find((entry) => entry.key === key)?.term ?? null;
   }
 
   ingredientById(id: string): Ingredient | undefined {
@@ -106,6 +123,14 @@ export class CuratedDishKnowledge implements DishKnowledge {
     }
     return { ingredients: [...found.values()] };
   }
+}
+
+/** Sorted meaningful words of a name without numbers and filler words – equal keys = same generic term. */
+function genericKey(name: string): string {
+  return tokens(normalizeFrench(name))
+    .filter((token) => !/^\d+$/.test(token) && !GENERIC_FILLER.has(token))
+    .sort()
+    .join(' ');
 }
 
 /** Share of matching tokens (typo-tolerant) relative to the larger token set. */

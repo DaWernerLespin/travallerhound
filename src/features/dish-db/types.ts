@@ -16,6 +16,15 @@ export type Ingredient = {
   note?: string;
 };
 
+/** A menu entry that names a category, not a dish (e.g. "Accompagnements"). */
+export type GenericTerm = {
+  id: string;
+  fr: string;
+  /** German meaning, e.g. "Beilagen". */
+  meaning: string;
+  aliases: string[];
+};
+
 export type Dish = {
   id: string;
   fr: string;

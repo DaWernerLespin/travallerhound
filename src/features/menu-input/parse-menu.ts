@@ -58,13 +58,15 @@ function createItem(
   const [namePart, ...rest] = cleaned.split(NAME_SEPARATOR);
   const name = namePart.replace(/[\s,.;]+$/, '').trim();
 
+  const generic = knowledge.matchGeneric(name);
   const item: MenuItem = {
     id: `${index}-${normalizeFrench(name).replace(/ /g, '-')}`,
     name,
     section,
     price: price?.trim(),
     tags,
-    match: knowledge.matchDish(name),
+    match: generic ? null : knowledge.matchDish(name),
+    generic,
     listedItems: [],
     menuIngredients: [],
     unknownMenuItems: [],

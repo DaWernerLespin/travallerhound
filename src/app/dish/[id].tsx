@@ -14,6 +14,7 @@ import { buildRatingInput } from '@/features/dish-rating/build-input';
 import { dishIngredients } from '@/features/dish-rating/dish-ingredients';
 import { sourceLabel } from '@/features/dish-rating/rate-dish';
 import type { Finding, FindingSource } from '@/features/dish-rating/types';
+import { germanLabel } from '@/features/menu-input/german-label';
 import { useMenuSession, useRatings } from '@/features/menu-session/session-context';
 
 const SOURCE_ORDER: FindingSource[] = ['staff', 'name', 'menu', 'db'];
@@ -44,7 +45,7 @@ export default function DishDetailScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         {item.section && <AppText variant="eyebrow">{item.section}</AppText>}
         <AppText variant="display">{item.name}</AppText>
-        <Text style={styles.german}>{dish ? dish.de : 'Unbekanntes Gericht'}</Text>
+        <Text style={styles.german}>{germanLabel(item)}</Text>
 
         <View style={styles.statusBox}>
           <StatusBadge status={rating.status} long />
@@ -64,7 +65,13 @@ export default function DishDetailScreen() {
               </View>
             );
           })}
-          {rating.findings.length === 0 && <Text style={styles.body}>Keine Hinweise auf Erdnuss oder Lupine gefunden.</Text>}
+          {rating.findings.length === 0 && (
+            <Text style={styles.body}>
+              {item.generic
+                ? 'Das ist ein Oberbegriff – welches Gericht genau kommt, weiß nur das Personal.'
+                : 'Keine Hinweise auf Erdnuss oder Lupine gefunden.'}
+            </Text>
+          )}
         </Section>
 
         {ingredients.length > 0 && (

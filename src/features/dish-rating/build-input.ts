@@ -11,6 +11,7 @@ export function buildRatingInput(item: MenuItem, knowledge: DishKnowledge): Rati
     .filter((ingredient): ingredient is Ingredient => ingredient !== undefined);
   return {
     dbDish,
+    generic: item.generic,
     dbIngredients,
     menuIngredients: item.menuIngredients,
     unknownMenuItems: item.unknownMenuItems,
