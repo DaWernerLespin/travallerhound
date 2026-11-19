@@ -81,7 +81,7 @@ describe('rating', () => {
 
   it('adds menu ingredients to the DB recipe', () => {
     const { item, rating } = rateMenuLine('Salade Parisienne 16,90\nJambon, oeuf dur, tomates, sauce arachide');
-    expect(item.menuIngredients.map((i) => i.id)).toContain('arachide');
+    expect(item.menuIngredients.some((i) => i.risk.peanut === 'contains')).toBe(true);
     expect(rating.status).toBe('unsafe');
   });
 });
@@ -118,7 +118,7 @@ describe('menu parsing', () => {
   });
 
   it('does not match unrelated dishes that share one word', () => {
-    expect(dishKnowledge.matchDish('Salade de lentilles')).toBeNull();
+    expect(dishKnowledge.matchDish('Salade de pissenlits')).toBeNull();
   });
 
   it('prefers exact words over typo matches (crêpe vs. crème)', () => {

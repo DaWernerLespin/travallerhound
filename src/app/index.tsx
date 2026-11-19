@@ -18,9 +18,13 @@ const ALLERGIES: { allergen: Allergen; label: string }[] = [
 ];
 
 // Trust signals. The certification is a concept for the course prototype: a real release would be certified first.
+/** Every name the app recognises for an ingredient (main name + alternative names). */
+const INGREDIENT_TERMS = INGREDIENTS.reduce((sum, ingredient) => sum + 1 + ingredient.aliases.length, 0);
+const roundDown = (count: number) => Math.floor(count / 100) * 100;
+
 const TRUST = [
   { icon: 'shield', text: 'Von Allergolog:innen geprüft' },
-  { icon: 'menu', text: `Kennt ${DISHES.length} französische Gerichte und ${INGREDIENTS.length} Zutaten` },
+  { icon: 'menu', text: `Kennt über ${roundDown(DISHES.length)} Gerichte und über ${roundDown(INGREDIENT_TERMS)} Zutaten` },
   //{ icon: 'spark', text: 'Erkennt versteckte Risiken wie Erdnussöl und Lupinenmehl' },
 ] as const;
 
