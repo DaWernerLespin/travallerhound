@@ -8,6 +8,7 @@ import { Hound } from '@/components/hound';
 import { Icon } from '@/components/icon';
 import { PrimaryButton } from '@/components/primary-button';
 import { SafetyNotice } from '@/components/safety-notice';
+import { StaffChecklist } from '@/components/staff-checklist';
 import { StatusBadge } from '@/components/status-badge';
 import { colors, fonts, radius } from '@/constants/theme';
 import type { DishStatus } from '@/features/dish-rating/types';
@@ -19,6 +20,7 @@ export default function ChatScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const chat = useStaffChat(id);
   const [noticeVisible, setNoticeVisible] = useState(false);
+  const [watched, setWatched] = useState(true);
   const scrollRef = useRef<ScrollViewInstance>(null);
 
   if (!chat.item || !chat.rating) {
@@ -50,6 +52,7 @@ export default function ChatScreen() {
         </Text>
         <StatusBadge status={status} />
       </View>
+      {chat.checklist.length > 0 && <StaffChecklist items={chat.checklist} />}
 
       <ScrollView
         ref={scrollRef}
@@ -59,13 +62,15 @@ export default function ChatScreen() {
       >
         {chat.messages.length === 0 && (
           <Text style={styles.intro}>
-            Wähle unten eine Frage. Ich übersetze sie ins Französische – dann gibst du dem Personal dein Handy.
+            {chat.introduced
+              ? 'Deine Allergie habe ich dem Personal schon erklärt. Jetzt geht es nur noch um dieses Gericht – wähle unten eine Frage.'
+              : 'Wähle unten eine Frage. Ich erkläre dem Personal zuerst freundlich deine Allergie und übersetze alles ins Französische – dann gibst du ihm dein Handy.'}
           </Text>
         )}
         {chat.messages.map((message) => (
           <ChatBubble key={message.id} side={message.side} fr={message.fr} de={message.de} />
         ))}
-        <ResultBanner status={status} ordered={chat.ordered} />
+        <ResultBanner status={status} ordered={chat.ordered} watched={watched} />
       </ScrollView>
 
       {staffMode ? (
@@ -106,6 +111,12 @@ export default function ChatScreen() {
         onCancel={() => setNoticeVisible(false)}
         onConfirm={async () => {
           setNoticeVisible(false);
+          setWatched(true);
+          await chat.order();
+        }}
+        onSkip={async () => {
+          setNoticeVisible(false);
+          setWatched(false);
           await chat.order();
         }}
       />
@@ -137,12 +148,15 @@ function StaffPanel({ replies, onReply }: { replies: StaffReply[]; onReply: (rep
   );
 }
 
-function ResultBanner({ status, ordered }: { status: DishStatus; ordered: boolean }) {
+function ResultBanner({ status, ordered, watched }: { status: DishStatus; ordered: boolean; watched: boolean }) {
   if (ordered) {
     return (
       <View style={[styles.banner, styles.bannerSafe]}>
         <Icon name="check" size={22} color={colors.green} />
-        <Text style={styles.bannerTitle}>Bestellt. Guten Appetit!</Text>
+        <View style={styles.flex}>
+          <Text style={styles.bannerTitle}>Bestellt. Guten Appetit!</Text>
+          {!watched && <Text style={styles.bannerText}>Ohne Überwachung – deine Begleitung ist für dich da.</Text>}
+        </View>
       </View>
     );
   }

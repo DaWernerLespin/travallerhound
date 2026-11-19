@@ -6,17 +6,22 @@ type Template = Record<Language, (p: Params) => string>;
 /** Offline phrase table (DE ↔ FR). Add phrases here; ids are referenced by questions and replies. */
 const PHRASES: Record<string, Template> = {
   // --- traveler ---
+  /** Sent once per restaurant visit, before the first question: severity + a friendly, grateful tone. */
+  intro: {
+    de: () =>
+      'Guten Tag! Ihre Karte sieht köstlich aus und ich würde sehr gerne bei Ihnen essen. Ich habe eine schwere Allergie gegen Erdnüsse und Lupinen: Schon kleinste Spuren können bei mir einen lebensbedrohlichen allergischen Schock auslösen. Ich habe ein Notfallmedikament dabei. Ich stelle Ihnen ein paar kurze Fragen zu den Gerichten – vielen Dank für Ihre Hilfe!',
+    fr: () =>
+      'Bonjour ! Votre carte a l’air délicieuse et j’aimerais beaucoup manger chez vous. J’ai une allergie grave aux arachides et au lupin : même des traces infimes peuvent provoquer chez moi un choc allergique mortel. J’ai un médicament d’urgence sur moi. Je vais vous poser quelques questions rapides sur les plats – merci beaucoup pour votre aide !',
+  },
   ask_allergens: {
-    de: (p) =>
-      `Guten Tag! Ich habe eine schwere Allergie gegen Erdnüsse und Lupinen – schon Spuren sind gefährlich. Enthält „${p.dish}“ Erdnüsse, Erdnussöl, Lupinen oder Lupinenmehl?`,
-    fr: (p) =>
-      `Bonjour ! J’ai une allergie grave aux arachides et au lupin – même des traces sont dangereuses. Le plat « ${p.dish} » contient-il des arachides, de l’huile d’arachide, du lupin ou de la farine de lupin ?`,
+    de: (p) => `Enthält „${p.dish}“ Erdnüsse, Erdnussöl, Lupinen oder Lupinenmehl?`,
+    fr: (p) => `Le plat « ${p.dish} » contient-il des arachides, de l’huile d’arachide, du lupin ou de la farine de lupin ?`,
   },
   ask_cross: {
-    de: () =>
-      'Können Sie das Gericht ohne Kreuzkontamination zubereiten – mit sauberen Utensilien und ohne Öl, in dem Erdnüsse frittiert wurden?',
-    fr: () =>
-      'Pouvez-vous préparer ce plat sans contamination croisée – avec des ustensiles propres et sans huile ayant servi à frire des arachides ?',
+    de: (p) =>
+      `Kann „${p.dish}“ ohne Kreuzkontamination zubereitet werden – mit sauberen Utensilien und ohne Öl, das mit Erdnüssen in Kontakt gekommen ist?`,
+    fr: (p) =>
+      `Pouvez-vous préparer « ${p.dish} » sans contamination croisée – avec des ustensiles propres et sans huile ayant été en contact avec des arachides ?`,
   },
   ask_ingredient_peanut: {
     de: (p) => `Wird „${p.ingredientDe}“ mit Erdnüssen oder Erdnussöl zubereitet?`,
@@ -31,12 +36,12 @@ const PHRASES: Record<string, Template> = {
     fr: (p) => `Est-ce que « ${p.ingredientFr} » contient des arachides, de l’huile d’arachide ou de la farine de lupin ?`,
   },
   order: {
-    de: () => 'Vielen Dank! Dann nehme ich dieses Gericht.',
-    fr: () => 'Merci beaucoup ! Je vais prendre ce plat.',
+    de: () => 'Vielen Dank für Ihre Hilfe! Dann nehme ich sehr gerne dieses Gericht.',
+    fr: () => 'Merci beaucoup pour votre aide ! Je prends ce plat avec plaisir.',
   },
   decline: {
-    de: () => 'Danke für die Information. Ich wähle ein anderes Gericht.',
-    fr: () => 'Merci pour l’information. Je vais choisir un autre plat.',
+    de: () => 'Vielen Dank für Ihre Ehrlichkeit! Ich wähle ein anderes Gericht.',
+    fr: () => 'Merci beaucoup pour votre franchise ! Je vais choisir un autre plat.',
   },
 
   // --- staff ---

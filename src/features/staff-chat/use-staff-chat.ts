@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { EMPTY_VERDICT, type StaffVerdict } from '@/features/dish-rating/types';
 import { baseRating, useMenuSession, useRatings } from '@/features/menu-session/session-context';
 
-import { applyReply, buildQuestions, isFinalReply } from './conversation';
+import { applyReply, buildChecklist, buildQuestions, isFinalReply } from './conversation';
 import { staffReplySource, translator } from './index';
 import type { Phrase, Question, StaffReply } from './types';
 
@@ -28,6 +28,11 @@ export function useStaffChat(itemId: string) {
   };
 
   const ask = async (question: Question) => {
+    // Explain the allergy only once per restaurant, not again for every dish.
+    if (!session.introduced) {
+      session.markIntroduced();
+      await send('traveler', { id: 'intro' });
+    }
     await send('traveler', question.phrase);
     setActiveQuestion(question);
   };
@@ -51,6 +56,8 @@ export function useStaffChat(itemId: string) {
     rating: item ? ratings[item.id] : undefined,
     messages,
     openQuestions,
+    checklist: buildChecklist(questions, verdict),
+    introduced: session.introduced,
     activeQuestion,
     staffReplies: activeQuestion ? staffReplySource.repliesFor(activeQuestion) : [],
     ordered: session.ordered[itemId] ?? false,

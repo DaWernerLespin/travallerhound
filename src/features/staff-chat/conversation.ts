@@ -1,15 +1,16 @@
-import type { Finding, StaffVerdict } from '@/features/dish-rating/types';
+import type { Finding, StaffAnswer, StaffVerdict } from '@/features/dish-rating/types';
 
 import type { Question, StaffReply, StaffReplySource } from './types';
 
 /**
  * Questions for one dish: the two the safety rating needs (allergens, cross-contamination),
  * then one per country-specific hidden risk (e.g. fries in peanut oil).
+ * They are asked again for every dish; only the allergy explanation (phrase "intro") is sent once per visit.
  */
 export function buildQuestions(dishName: string, findings: Finding[]): Question[] {
   const questions: Question[] = [
     { id: 'allergens', topic: 'allergens', label: 'Enthält das Gericht Erdnüsse oder Lupinen?', phrase: { id: 'ask_allergens', params: { dish: dishName } } },
-    { id: 'cross', topic: 'cross', label: 'Geht es ohne Kreuzkontamination?', phrase: { id: 'ask_cross' } },
+    { id: 'cross', topic: 'cross', label: 'Geht es ohne Kreuzkontamination?', phrase: { id: 'ask_cross', params: { dish: dishName } } },
   ];
 
   const hidden = new Map<string, { fr: string; de: string; peanut: boolean; lupin: boolean }>();
@@ -37,6 +38,31 @@ export function buildQuestions(dishName: string, findings: Finding[]): Question[
     });
   }
   return questions;
+}
+
+export type ChecklistState = 'open' | 'ok' | 'risk' | 'unclear';
+export type ChecklistItem = { id: string; label: string; state: ChecklistState };
+
+const STATE: Record<StaffAnswer, ChecklistState> = { unasked: 'open', absent: 'ok', present: 'risk', unknown: 'unclear' };
+
+/** What still has to be confirmed for this dish, ticked off by the staff's answers. */
+export function buildChecklist(questions: Question[], verdict: StaffVerdict): ChecklistItem[] {
+  return questions.flatMap((question): ChecklistItem[] => {
+    switch (question.topic) {
+      case 'allergens':
+        return [
+          { id: 'peanut', label: 'Erdnüsse', state: STATE[verdict.peanut] },
+          { id: 'lupin', label: 'Lupinen', state: STATE[verdict.lupin] },
+        ];
+      case 'cross':
+        return [{ id: 'cross', label: 'Kreuzkontamination', state: STATE[verdict.crossContamination] }];
+      case 'ingredient': {
+        const answer = question.ingredientId ? verdict.ingredients[question.ingredientId] : undefined;
+        const label = (question.phrase.params?.ingredientDe ?? question.label).replace(/^./, (c) => c.toUpperCase());
+        return [{ id: question.id, label, state: STATE[answer ?? 'unasked'] }];
+      }
+    }
+  });
 }
 
 const ASK_CHEF: StaffReply = { id: 'ask-chef', phrase: { id: 'reply_ask_chef' }, effect: {}, tone: 'neutral' };

@@ -5,8 +5,21 @@ import { colors, fonts, radius } from '@/constants/theme';
 import { Icon } from './icon';
 import { PrimaryButton } from './primary-button';
 
-/** Order notice from the Click-Dummy. Monitoring is NOT active in the MVP – the dialog says so. */
-export function SafetyNotice({ visible, onCancel, onConfirm }: { visible: boolean; onCancel: () => void; onConfirm: () => void }) {
+/**
+ * Order notice from the Click-Dummy. Monitoring is NOT active in the MVP – the dialog says so.
+ * `onSkip`: order without the check-ins, e.g. when the traveller is with someone who can help.
+ */
+export function SafetyNotice({
+  visible,
+  onCancel,
+  onConfirm,
+  onSkip,
+}: {
+  visible: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+  onSkip: () => void;
+}) {
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
       <View style={styles.backdrop}>
@@ -23,6 +36,7 @@ export function SafetyNotice({ visible, onCancel, onConfirm }: { visible: boolea
           <Text style={styles.prototype}>Hinweis: In dieser Demo wird nur diese Mitteilung gezeigt. Die Überwachung ist nicht aktiv.</Text>
           <View style={styles.actions}>
             <PrimaryButton label="Verstanden & bestellen" icon="check" onPress={onConfirm} />
+            <PrimaryButton label="Ich bin in Begleitung – ohne Überwachung" variant="outline" onPress={onSkip} />
             <PrimaryButton label="Abbrechen" icon="close" variant="outline" onPress={onCancel} />
           </View>
         </View>

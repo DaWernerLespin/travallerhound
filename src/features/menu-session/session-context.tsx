@@ -16,15 +16,18 @@ type SessionState = {
   verdicts: Record<string, StaffVerdict>;
   chats: Record<string, ChatMessage[]>;
   ordered: Record<string, boolean>;
+  /** The allergy was already explained to the staff in this restaurant (sent once per loaded menu). */
+  introduced: boolean;
 };
 
 type Action =
   | { type: 'loadMenu'; items: MenuItem[]; sourceLabel: string; now: number }
   | { type: 'addMessage'; itemId: string; message: ChatMessage }
   | { type: 'setVerdict'; itemId: string; verdict: StaffVerdict }
-  | { type: 'markOrdered'; itemId: string };
+  | { type: 'markOrdered'; itemId: string }
+  | { type: 'markIntroduced' };
 
-const INITIAL: SessionState = { items: [], sourceLabel: null, scanStartedAt: null, verdicts: {}, chats: {}, ordered: {} };
+const INITIAL: SessionState = { items: [], sourceLabel: null, scanStartedAt: null, verdicts: {}, chats: {}, ordered: {}, introduced: false };
 
 function reducer(state: SessionState, action: Action): SessionState {
   switch (action.type) {
@@ -39,6 +42,8 @@ function reducer(state: SessionState, action: Action): SessionState {
       return { ...state, verdicts: { ...state.verdicts, [action.itemId]: action.verdict } };
     case 'markOrdered':
       return { ...state, ordered: { ...state.ordered, [action.itemId]: true } };
+    case 'markIntroduced':
+      return { ...state, introduced: true };
   }
 }
 
@@ -48,6 +53,7 @@ type SessionValue = SessionState & {
   addMessage: (itemId: string, message: ChatMessage) => void;
   setVerdict: (itemId: string, verdict: StaffVerdict) => void;
   markOrdered: (itemId: string) => void;
+  markIntroduced: () => void;
 };
 
 const SessionContext = createContext<SessionValue | null>(null);
@@ -63,10 +69,11 @@ export function MenuSessionProvider({ children }: { children: ReactNode }) {
   const addMessage = useCallback((itemId: string, message: ChatMessage) => dispatch({ type: 'addMessage', itemId, message }), []);
   const setVerdict = useCallback((itemId: string, verdict: StaffVerdict) => dispatch({ type: 'setVerdict', itemId, verdict }), []);
   const markOrdered = useCallback((itemId: string) => dispatch({ type: 'markOrdered', itemId }), []);
+  const markIntroduced = useCallback(() => dispatch({ type: 'markIntroduced' }), []);
 
   const value = useMemo(
-    () => ({ ...state, loadMenuText, addMessage, setVerdict, markOrdered }),
-    [state, loadMenuText, addMessage, setVerdict, markOrdered],
+    () => ({ ...state, loadMenuText, addMessage, setVerdict, markOrdered, markIntroduced }),
+    [state, loadMenuText, addMessage, setVerdict, markOrdered, markIntroduced],
   );
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 }
