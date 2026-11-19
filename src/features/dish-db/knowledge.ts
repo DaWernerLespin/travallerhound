@@ -114,9 +114,11 @@ function tokenSimilarity(a: string[], b: string[]): number {
   const unmatched = [...b];
   let matches = 0;
   for (const token of a) {
-    const index = unmatched.findIndex((other) => tokensEqual(token, other));
+    const exact = unmatched.indexOf(token);
+    const index = exact >= 0 ? exact : unmatched.findIndex((other) => tokensEqual(token, other));
     if (index >= 0) {
-      matches++;
+      // A typo match counts a bit less, so "crêpe" never beats an exact "crème" (and vice versa).
+      matches += exact >= 0 ? 1 : 0.9;
       unmatched.splice(index, 1);
     }
   }
@@ -129,7 +131,7 @@ function tokenSimilarity(a: string[], b: string[]): number {
  */
 function containmentScore(nameTokens: string[], candidateTokens: string[]): number {
   if (candidateTokens.length === 0) return 0;
-  const contained = candidateTokens.every((token) => nameTokens.some((other) => tokensEqual(token, other)));
+  const contained = candidateTokens.every((token) => nameTokens.includes(token));
   return contained ? 0.7 + 0.3 * (candidateTokens.length / nameTokens.length) : 0;
 }
 

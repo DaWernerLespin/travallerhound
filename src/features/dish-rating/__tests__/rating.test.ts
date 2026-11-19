@@ -117,6 +117,11 @@ describe('menu parsing', () => {
     expect(dishKnowledge.matchDish('Salade de lentilles')).toBeNull();
   });
 
+  it('prefers exact words over typo matches (crêpe vs. crème)', () => {
+    const parsed = parseMenuText('Crêpe au chocolat 6,00\nCrème caramel 6,00\nCrêpe caramel 6,00', dishKnowledge);
+    expect(parsed.map((i) => i.match?.dish.id)).toEqual(['crepe-nutella', 'creme-caramel', 'crepe-caramel']);
+  });
+
   it('accepts plain typed dish names without prices', () => {
     const parsed = parseMenuText('crème brûlée\nquiche lorraine', dishKnowledge);
     expect(parsed.map((i) => i.match?.dish.id)).toEqual(['creme-brulee', 'quiche-lorraine']);
