@@ -34,7 +34,7 @@ export function StaffChecklist({ items }: { items: ChecklistItem[] }) {
 }
 
 const styles = StyleSheet.create({
-  box: { marginHorizontal: 16, marginTop: 8, gap: 6 },
+  box: { marginHorizontal: 16, marginTop: 8, paddingBottom: 12, gap: 6, borderBottomWidth: 1, borderBottomColor: colors.line },
   title: { fontFamily: fonts.display, fontSize: 10, letterSpacing: 1.4, textTransform: 'uppercase', color: colors.muted, marginLeft: 4 },
   wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   chip: {

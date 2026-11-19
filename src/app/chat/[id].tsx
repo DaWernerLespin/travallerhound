@@ -5,7 +5,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ChatBubble } from '@/components/chat-bubble';
 import { CollapsibleGroup } from '@/components/collapsible-group';
-import { Hound } from '@/components/hound';
 import { Icon } from '@/components/icon';
 import { PrimaryButton } from '@/components/primary-button';
 import { SafetyNotice } from '@/components/safety-notice';
@@ -41,14 +40,7 @@ export default function ChatScreen() {
         <Pressable onPress={() => router.back()} accessibilityLabel="Zurück" hitSlop={10}>
           <Icon name="arrow" />
         </Pressable>
-        <Hound size={34} />
-        <View style={styles.flex}>
-          <Text style={styles.headerTitle}>Bruno übersetzt</Text>
-          <Text style={styles.headerSub}>Deutsch ↔ Französisch</Text>
-        </View>
-      </View>
-      <View style={styles.context}>
-        <Text style={styles.dish} numberOfLines={1}>
+        <Text style={styles.dish} numberOfLines={2}>
           {chat.item.name}
         </Text>
         <StatusBadge status={status} />
@@ -207,21 +199,8 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.cream },
   flex: { flex: 1 },
   empty: { padding: 24, fontFamily: fonts.body },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 20, paddingVertical: 12 },
-  headerTitle: { fontFamily: fonts.display, fontSize: 15, color: colors.ink },
-  headerSub: { fontFamily: fonts.body, fontSize: 11, color: colors.muted },
-  context: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginHorizontal: 16,
-    padding: 12,
-    backgroundColor: colors.paper,
-    borderRadius: radius.card,
-    borderWidth: 1,
-    borderColor: '#ece9df',
-  },
-  dish: { flex: 1, fontFamily: fonts.displayBold, fontSize: 14, color: colors.ink },
+  header: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 20, paddingTop: 10, paddingBottom: 4 },
+  dish: { flex: 1, fontFamily: fonts.displayBold, fontSize: 16, color: colors.ink },
   messages: { paddingHorizontal: 16, paddingVertical: 14 },
   intro: { fontFamily: fonts.body, fontSize: 14, lineHeight: 21, color: colors.muted, textAlign: 'center', marginTop: 20, paddingHorizontal: 20 },
   footer: { paddingHorizontal: 16, paddingBottom: 14, paddingTop: 8, gap: 8 },
