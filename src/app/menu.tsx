@@ -65,7 +65,7 @@ export default function MenuInputScreen() {
               {FEATURES.menuUpload && (
                 <Option icon="file" title="Bild oder PDF hochladen" text="PNG, JPG oder PDF der Speisekarte" onPress={input.uploadFile} />
               )}
-              <Option icon="text" title="Text eingeben" text="Gerichte abtippen oder einfügen" onPress={() => setTyping((value) => !value)} />
+              <Option icon="text" title="Text eingeben" text="Gerichte abtippen oder einfügen" onPress={() => setTyping((value) => !value)} open={typing} />
               {typing && textEntry}
               <Option
                 icon="camera"
@@ -98,12 +98,15 @@ function Option({
   text,
   onPress,
   disabled = false,
+  open = false,
 }: {
   icon: IconName;
   title: string;
   text: string;
   onPress: () => void;
   disabled?: boolean;
+  /** Content opens below this option: the arrow points down. */
+  open?: boolean;
 }) {
   return (
     <Pressable
@@ -120,7 +123,11 @@ function Option({
         <Text style={styles.optionTitle}>{title}</Text>
         <Text style={styles.optionText}>{text}</Text>
       </View>
-      {!disabled && <Icon name="chevron" size={16} color={colors.muted} />}
+      {!disabled && (
+        <View style={open && styles.chevronOpen}>
+          <Icon name="chevron" size={16} color={colors.muted} />
+        </View>
+      )}
     </Pressable>
   );
 }
@@ -143,6 +150,7 @@ const styles = StyleSheet.create({
   },
   pressed: { opacity: 0.7 },
   disabled: { opacity: 0.45 },
+  chevronOpen: { transform: [{ rotate: '90deg' }] },
   optionIcon: {
     width: 44,
     height: 44,
