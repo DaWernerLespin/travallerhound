@@ -1,24 +1,23 @@
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppText } from '@/components/app-text';
+import { CollapsibleGroup } from '@/components/collapsible-group';
 import { Icon, type IconName } from '@/components/icon';
-import { PrimaryButton } from '@/components/primary-button';
+import { MenuTextEntry } from '@/components/menu-text-entry';
 import { TopBar } from '@/components/top-bar';
 import { colors, fonts, radius } from '@/constants/theme';
-import { BRASSERIE_MENU, CHOUCHOU_MENU } from '@/features/menu-input/demo-menus';
+import { DEMO_MENUS } from '@/features/menu-input/demo-menus';
 import { useMenuInput } from '@/features/menu-input/use-menu-input';
-
-const TEXT_PLACEHOLDER = 'Salade Niçoise 17,90\nThon, oeuf dur, olives, tomates\nSteak frites 19,50';
 
 export default function MenuInputScreen() {
   const input = useMenuInput(() => router.push('/analysis'));
   const [text, setText] = useState('');
   const [typing, setTyping] = useState(false);
-  const showTextBox = typing || input.manualFile !== null;
+  const textEntry = <MenuTextEntry value={text} onChange={setText} onSubmit={() => input.submitText(text)} />;
 
   return (
     <SafeAreaView style={styles.screen}>
@@ -42,34 +41,29 @@ export default function MenuInputScreen() {
                 </View>
               )}
               <Text style={styles.hint}>{input.manualFile.reason}</Text>
+              {textEntry}
+              <Pressable
+                onPress={() => {
+                  input.clearManualFile();
+                  setTyping(false);
+                }}
+                style={styles.cancel}
+              >
+                <Text style={styles.cancelText}>Andere Quelle wählen</Text>
+              </Pressable>
             </View>
           ) : (
             <View style={styles.options}>
               <Option icon="qr" title="QR-Code scannen" text="Code auf der Speisekarte scannen" onPress={() => router.push('/scan')} />
               <Option icon="camera" title="Foto aufnehmen" text="Speisekarte mit der Kamera fotografieren" onPress={input.takePhoto} />
               <Option icon="file" title="Bild oder PDF hochladen" text="PNG, JPG oder PDF der Speisekarte" onPress={input.uploadFile} />
-              <Option icon="text" title="Text eingeben" text="Gerichte abtippen oder einfügen" onPress={() => setTyping(true)} />
-              <AppText variant="eyebrow" style={styles.demoTitle}>
-                Demo
-              </AppText>
-              <Option icon="menu" title="Chouchou, Paris" text="Echte Speisekarte (Vorspeisen & Salate)" onPress={() => input.loadDemo(CHOUCHOU_MENU)} />
-              <Option icon="menu" title="Beispielkarte Brasserie" text="Zeigt alle Einstufungen" onPress={() => input.loadDemo(BRASSERIE_MENU)} />
-            </View>
-          )}
-
-          {showTextBox && (
-            <View style={styles.textBox}>
-              <Text style={styles.textLabel}>Eine Zeile pro Gericht – Zutaten mit Komma in die nächste Zeile.</Text>
-              <TextInput
-                style={styles.input}
-                multiline
-                value={text}
-                onChangeText={setText}
-                placeholder={TEXT_PLACEHOLDER}
-                placeholderTextColor="#a3adae"
-                autoCorrect={false}
-                textAlignVertical="top"
-              />
+              <Option icon="text" title="Text eingeben" text="Gerichte abtippen oder einfügen" onPress={() => setTyping((value) => !value)} />
+              {typing && textEntry}
+              <CollapsibleGroup title="Demo-Karten" subtitle="Ohne QR-Code direkt öffnen">
+                {DEMO_MENUS.map((menu) => (
+                  <Option key={menu.id} icon="menu" title={menu.title} text={menu.description} onPress={() => input.loadDemo(menu)} />
+                ))}
+              </CollapsibleGroup>
             </View>
           )}
 
@@ -77,20 +71,6 @@ export default function MenuInputScreen() {
           {input.error && <Text style={styles.error}>{input.error}</Text>}
         </ScrollView>
 
-        {showTextBox && (
-          <View style={styles.footer}>
-            <PrimaryButton label="Gerichte prüfen" icon="spark" onPress={() => input.submitText(text)} disabled={!text.trim()} />
-            <Pressable
-              onPress={() => {
-                input.clearManualFile();
-                setTyping(false);
-              }}
-              style={styles.cancel}
-            >
-              <Text style={styles.cancelText}>Andere Quelle wählen</Text>
-            </Pressable>
-          </View>
-        )}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -117,7 +97,6 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 24, paddingTop: 12, paddingBottom: 32 },
   lead: { color: colors.muted, marginTop: 12 },
   options: { marginTop: 24, gap: 10 },
-  demoTitle: { marginTop: 14, marginBottom: 0 },
   option: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -151,22 +130,8 @@ const styles = StyleSheet.create({
   },
   previewName: { flex: 1, fontFamily: fonts.bodyBold, fontSize: 14, color: colors.ink },
   hint: { fontFamily: fonts.body, fontSize: 13, lineHeight: 19, color: colors.orangeText },
-  textBox: { marginTop: 18 },
-  textLabel: { fontFamily: fonts.body, fontSize: 12, color: colors.muted, marginBottom: 8 },
-  input: {
-    minHeight: 170,
-    backgroundColor: colors.paper,
-    borderRadius: radius.card,
-    borderWidth: 1,
-    borderColor: colors.line,
-    padding: 14,
-    fontFamily: fonts.body,
-    fontSize: 15,
-    color: colors.ink,
-  },
   busy: { marginTop: 20 },
   error: { fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.red, marginTop: 14 },
-  footer: { paddingHorizontal: 24, paddingBottom: 16, paddingTop: 8 },
-  cancel: { alignItems: 'center', paddingTop: 12 },
+  cancel: { alignItems: 'center', paddingTop: 4 },
   cancelText: { fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.muted },
 });

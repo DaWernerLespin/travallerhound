@@ -5,6 +5,8 @@
 export type DemoMenu = {
   id: string;
   title: string;
+  /** One short German line for the demo menu list. */
+  description: string;
   /** Size in bytes of the original image, used to recognise an uploaded copy (none = text-only demo). */
   fileSize?: number;
   text: string;
@@ -13,6 +15,7 @@ export type DemoMenu = {
 export const CHOUCHOU_MENU: DemoMenu = {
   id: 'chouchou',
   title: 'Chouchou Restaurant & Bar, Paris',
+  description: 'Echte Speisekarte (Vorspeisen & Salate)',
   fileSize: 898423,
   text: `ENTRÉES
 Carpaccio de boeuf au grana padano 11,90
@@ -58,6 +61,7 @@ Salade, pamplemousse, champignons de Paris, avocat, tomates, radis, concombre`,
 export const BRASSERIE_MENU: DemoMenu = {
   id: 'brasserie',
   title: 'Beispielkarte Brasserie',
+  description: 'Zeigt alle Einstufungen',
   text: `PLATS
 Steak frites maison 19,50
 Poulet aux cacahuètes, riz 16,90

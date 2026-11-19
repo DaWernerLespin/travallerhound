@@ -7,10 +7,17 @@ Local demo app for the Startup Engineering course (Expo Go, Android). Fully offl
 
 ```bash
 npm install          # once (after pulling)
-npx expo start       # scan the QR code with Expo Go on the phone
+npm run mobile       # dev server via tunnel – scan the QR code with Expo Go on the phone
+npm start            # same without tunnel (phone and laptop on the same Wi-Fi)
+npm run web          # in the laptop browser
+npm run qr           # regenerate the demo menu QR codes (assets/demo/qr/)
 ```
 
-Phone and laptop must be on the same Wi-Fi. If it doesn't connect: `npx expo start --tunnel`.
+`npm run mobile` works on any network (also uni Wi-Fi). Use it when Expo Go shows
+"failed to download remote update".
+
+Live website: https://travallerhound.vercel.app/ (deploys from `main`). Demo menus open via
+`/karte/<id>`, e.g. https://travallerhound.vercel.app/karte/chouchou – that is what the QR codes contain.
 
 ## Checks
 
