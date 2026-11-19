@@ -11,10 +11,12 @@ export function MenuTextEntry({
   value,
   onChange,
   onSubmit,
+  onFocus,
 }: {
   value: string;
   onChange: (text: string) => void;
   onSubmit: () => void;
+  onFocus?: () => void;
 }) {
   return (
     <View style={styles.box}>
@@ -29,6 +31,7 @@ export function MenuTextEntry({
         multiline
         value={value}
         onChangeText={onChange}
+        onFocus={onFocus}
         placeholder={EXAMPLE}
         placeholderTextColor="#a3adae"
         autoCorrect={false}

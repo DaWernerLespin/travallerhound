@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import { useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { ActivityIndicator, KeyboardAvoidingView, type ScrollViewInstance, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppText } from '@/components/app-text';
@@ -9,6 +9,7 @@ import { CollapsibleGroup } from '@/components/collapsible-group';
 import { Icon, type IconName } from '@/components/icon';
 import { MenuTextEntry } from '@/components/menu-text-entry';
 import { TopBar } from '@/components/top-bar';
+import { FEATURES } from '@/constants/features';
 import { colors, fonts, radius } from '@/constants/theme';
 import { DEMO_MENUS } from '@/features/menu-input/demo-menus';
 import { useMenuInput } from '@/features/menu-input/use-menu-input';
@@ -17,16 +18,21 @@ export default function MenuInputScreen() {
   const input = useMenuInput(() => router.push('/analysis'));
   const [text, setText] = useState('');
   const [typing, setTyping] = useState(false);
-  const textEntry = <MenuTextEntry value={text} onChange={setText} onSubmit={() => input.submitText(text)} />;
+  const scroll = useRef<ScrollViewInstance>(null);
+  // Keep the text field above the keyboard: scroll down once the keyboard has opened.
+  const revealEntry = () => setTimeout(() => scroll.current?.scrollToEnd({ animated: true }), 300);
+  const textEntry = (
+    <MenuTextEntry value={text} onChange={setText} onSubmit={() => input.submitText(text)} onFocus={revealEntry} />
+  );
 
   return (
     <SafeAreaView style={styles.screen}>
       <TopBar onBack={() => router.back()} />
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <ScrollView ref={scroll} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <AppText variant="eyebrow">Schritt 1 von 2</AppText>
           <AppText variant="display">Zeig mir, was auf der Karte steht.</AppText>
-          <AppText style={styles.lead}>Fotografiere die Speisekarte, lade ein Bild oder PDF hoch oder tippe die Gerichte ab.</AppText>
+          <AppText style={styles.lead}>Scanne den QR-Code auf der Speisekarte oder tippe die Gerichte ab.</AppText>
 
           {input.manualFile ? (
             <View style={styles.preview}>
@@ -55,8 +61,16 @@ export default function MenuInputScreen() {
           ) : (
             <View style={styles.options}>
               <Option icon="qr" title="QR-Code scannen" text="Code auf der Speisekarte scannen" onPress={() => router.push('/scan')} />
-              <Option icon="camera" title="Foto aufnehmen" text="Speisekarte mit der Kamera fotografieren" onPress={input.takePhoto} />
-              <Option icon="file" title="Bild oder PDF hochladen" text="PNG, JPG oder PDF der Speisekarte" onPress={input.uploadFile} />
+              <Option
+                icon="camera"
+                title="Foto aufnehmen"
+                text={FEATURES.menuPhoto ? 'Speisekarte mit der Kamera fotografieren' : 'Bald verfügbar'}
+                onPress={input.takePhoto}
+                disabled={!FEATURES.menuPhoto}
+              />
+              {FEATURES.menuUpload && (
+                <Option icon="file" title="Bild oder PDF hochladen" text="PNG, JPG oder PDF der Speisekarte" onPress={input.uploadFile} />
+              )}
               <Option icon="text" title="Text eingeben" text="Gerichte abtippen oder einfügen" onPress={() => setTyping((value) => !value)} />
               {typing && textEntry}
               <CollapsibleGroup title="Demo-Karten" subtitle="Ohne QR-Code direkt öffnen">
@@ -76,9 +90,27 @@ export default function MenuInputScreen() {
   );
 }
 
-function Option({ icon, title, text, onPress }: { icon: IconName; title: string; text: string; onPress: () => void }) {
+function Option({
+  icon,
+  title,
+  text,
+  onPress,
+  disabled = false,
+}: {
+  icon: IconName;
+  title: string;
+  text: string;
+  onPress: () => void;
+  disabled?: boolean;
+}) {
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.option, pressed && styles.pressed]} accessibilityRole="button">
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      style={({ pressed }) => [styles.option, pressed && styles.pressed, disabled && styles.disabled]}
+      accessibilityRole="button"
+      accessibilityState={{ disabled }}
+    >
       <View style={styles.optionIcon}>
         <Icon name={icon} size={22} />
       </View>
@@ -86,7 +118,7 @@ function Option({ icon, title, text, onPress }: { icon: IconName; title: string;
         <Text style={styles.optionTitle}>{title}</Text>
         <Text style={styles.optionText}>{text}</Text>
       </View>
-      <Icon name="chevron" size={16} color={colors.muted} />
+      {!disabled && <Icon name="chevron" size={16} color={colors.muted} />}
     </Pressable>
   );
 }
@@ -108,6 +140,7 @@ const styles = StyleSheet.create({
     padding: 14,
   },
   pressed: { opacity: 0.7 },
+  disabled: { opacity: 0.45 },
   optionIcon: {
     width: 44,
     height: 44,
