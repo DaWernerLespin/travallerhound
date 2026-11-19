@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, type ScrollViewInstance, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View, type ScrollViewInstance } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppText } from '@/components/app-text';
@@ -31,7 +31,7 @@ export default function MenuInputScreen() {
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView ref={scroll} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <AppText variant="eyebrow">Schritt 1 von 2</AppText>
-          <AppText variant="display">Zeig mir, was auf der Karte steht.</AppText>
+          <AppText variant="display">Zeig mir, was auf der Karte steht</AppText>
           <AppText style={styles.lead}>Scanne den QR-Code auf der Speisekarte oder tippe die Gerichte ab.</AppText>
 
           {input.manualFile ? (
@@ -61,6 +61,12 @@ export default function MenuInputScreen() {
           ) : (
             <View style={styles.options}>
               <Option icon="qr" title="QR-Code scannen" text="Code auf der Speisekarte scannen" onPress={() => router.push('/scan')} />
+              
+              {FEATURES.menuUpload && (
+                <Option icon="file" title="Bild oder PDF hochladen" text="PNG, JPG oder PDF der Speisekarte" onPress={input.uploadFile} />
+              )}
+              <Option icon="text" title="Text eingeben" text="Gerichte abtippen oder einfügen" onPress={() => setTyping((value) => !value)} />
+              {typing && textEntry}
               <Option
                 icon="camera"
                 title="Foto aufnehmen"
@@ -68,11 +74,7 @@ export default function MenuInputScreen() {
                 onPress={input.takePhoto}
                 disabled={!FEATURES.menuPhoto}
               />
-              {FEATURES.menuUpload && (
-                <Option icon="file" title="Bild oder PDF hochladen" text="PNG, JPG oder PDF der Speisekarte" onPress={input.uploadFile} />
-              )}
-              <Option icon="text" title="Text eingeben" text="Gerichte abtippen oder einfügen" onPress={() => setTyping((value) => !value)} />
-              {typing && textEntry}
+
               <CollapsibleGroup title="Demo-Karten" subtitle="Ohne QR-Code direkt öffnen">
                 {DEMO_MENUS.map((menu) => (
                   <Option key={menu.id} icon="menu" title={menu.title} text={menu.description} onPress={() => input.loadDemo(menu)} />

@@ -21,7 +21,7 @@ const ALLERGIES: { allergen: Allergen; label: string }[] = [
 const TRUST = [
   { icon: 'shield', text: 'Von Allergolog:innen geprüft' },
   { icon: 'menu', text: `Kennt ${DISHES.length} französische Gerichte und ${INGREDIENTS.length} Zutaten` },
-  { icon: 'spark', text: 'Erkennt versteckte Risiken wie Erdnussöl und Lupinenmehl' },
+  //{ icon: 'spark', text: 'Erkennt versteckte Risiken wie Erdnussöl und Lupinenmehl' },
 ] as const;
 
 export default function WelcomeScreen() {
@@ -32,8 +32,8 @@ export default function WelcomeScreen() {
       <View style={styles.copy}>
         <Text style={styles.eyebrow}>Bonjour, Alex</Text>
         <Text style={styles.title}>
-          Ich bin <Text style={styles.highlight}>Bruno.</Text>
-          {'\n'}Deine Spürnase{'\n'}für Frankreich.
+          Ich bin <Text style={styles.highlight}>Bruno,</Text>
+          {'\n'}deine Spürnase{'\n'}für Frankreich
         </Text>
         <View style={styles.pills}>
           {ALLERGIES.map(({ allergen, label }) => (

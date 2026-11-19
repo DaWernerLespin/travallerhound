@@ -56,7 +56,7 @@ export default function AnalysisScreen() {
       <View style={styles.head}>
         <View style={styles.flex}>
           <AppText variant="eyebrow">{scan.done ? 'Deine Karte' : 'Live-Analyse'}</AppText>
-          <Text style={styles.title}>{scan.done ? 'Das habe ich gefunden.' : 'Einen Moment – ich schnüffle für dich.'}</Text>
+          <Text style={styles.title}>{scan.done ? 'Das habe ich gefunden.' : 'Einen Moment, ich schnüffle für dich.'}</Text>
           {sourceLabel && <Text style={styles.source}>{sourceLabel}</Text>}
         </View>
         <ProgressRing progress={scan.progress} secondsLeft={scan.secondsLeft} />
