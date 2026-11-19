@@ -284,8 +284,8 @@ Glace artisanale: vanille, caramel beurre salé, chocolat, yaourt, fraise, citro
 };
 
 export const DEMO_MENUS: DemoMenu[] = [
-  CHOUCHOU_MENU,
   BRASSERIE_MENU,
+  CHOUCHOU_MENU,
   TGV_BISTRO_MENU,
   BISTRO_SAISON_MENU,
   MAROCAIN_DESSERTS_MENU,
