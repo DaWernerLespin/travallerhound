@@ -12,6 +12,12 @@ import { colors, fonts } from '@/constants/theme';
 import { useMenuSession } from '@/features/menu-session/session-context';
 import { useScan } from '@/features/menu-session/use-scan';
 
+/** Opened via a QR link there is no previous screen – go to the menu input instead. */
+function goBack() {
+  if (router.canGoBack()) router.back();
+  else router.replace('/menu');
+}
+
 export default function AnalysisScreen() {
   const { items, sourceLabel } = useMenuSession();
   const scan = useScan();
@@ -19,7 +25,7 @@ export default function AnalysisScreen() {
   if (items.length === 0) {
     return (
       <SafeAreaView style={styles.screen}>
-        <TopBar onBack={() => router.back()} />
+        <TopBar onBack={goBack} />
         <View style={styles.content}>
           <AppText variant="title">Noch keine Speisekarte geladen.</AppText>
         </View>
@@ -29,7 +35,7 @@ export default function AnalysisScreen() {
 
   return (
     <SafeAreaView style={styles.screen}>
-      <TopBar onBack={() => router.back()} />
+      <TopBar onBack={goBack} />
       <View style={styles.head}>
         <View style={styles.flex}>
           <AppText variant="eyebrow">{scan.done ? 'Analyse abgeschlossen' : 'Live-Analyse'}</AppText>

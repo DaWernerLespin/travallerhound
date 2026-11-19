@@ -32,6 +32,13 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "TravAllerHound braucht die Kamera, um den QR-Code der Speisekarte zu lesen.",
+          "barcodeScannerEnabled": true
+        }
       ]
     ],
     "experiments": {

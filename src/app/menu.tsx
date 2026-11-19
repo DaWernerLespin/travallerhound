@@ -45,6 +45,7 @@ export default function MenuInputScreen() {
             </View>
           ) : (
             <View style={styles.options}>
+              <Option icon="qr" title="QR-Code scannen" text="Code auf der Speisekarte scannen" onPress={() => router.push('/scan')} />
               <Option icon="camera" title="Foto aufnehmen" text="Speisekarte mit der Kamera fotografieren" onPress={input.takePhoto} />
               <Option icon="file" title="Bild oder PDF hochladen" text="PNG, JPG oder PDF der Speisekarte" onPress={input.uploadFile} />
               <Option icon="text" title="Text eingeben" text="Gerichte abtippen oder einfügen" onPress={() => setTyping(true)} />
