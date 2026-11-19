@@ -4,11 +4,11 @@ import { colors } from './theme';
 
 type StatusLook = { label: string; short: string; color: string; background: string };
 
-/** 3 colours: red, orange (unclear + likely safe), green only when the staff confirmed. */
+/** Red = risk, orange = unclear, light green = likely safe (still ask), strong green only when the staff confirmed. */
 export const STATUS_LOOK: Record<DishStatus, StatusLook> = {
   unsafe: { label: 'Nicht sicher', short: 'Risiko', color: colors.red, background: colors.redSoft },
   undefined: { label: 'Unklar – bitte nachfragen', short: 'Unklar', color: colors.orangeText, background: colors.orangeSoft },
-  likely_safe: { label: 'Wahrscheinlich sicher – nachfragen', short: 'Nachfragen', color: colors.orangeText, background: colors.orangeSoft },
+  likely_safe: { label: 'Wahrscheinlich sicher – nachfragen', short: 'Nachfragen', color: colors.lightGreenText, background: colors.lightGreenSoft },
   safe: { label: 'Sicher – vom Personal bestätigt', short: 'Sicher', color: colors.green, background: colors.greenSoft },
 };
 

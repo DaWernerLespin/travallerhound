@@ -14,8 +14,8 @@ Decisions made while building without the team present. Each one is easy to chan
 - **Expo starter template removed** (tabs, explore screen, example components, `reset-project` script). Still in git history.
 
 ## Rating
-- Statuses: `unsafe` (red), `undefined` "Unklar" and `likely_safe` "Wahrscheinlich sicher – nachfragen" (both orange),
-  `safe` (green + "Vom Personal bestätigt"). Green only after staff confirmation.
+- Statuses: `unsafe` (red), `undefined` "Unklar" (orange), `likely_safe` "Wahrscheinlich sicher – nachfragen" (light green, since 19 Nov),
+  `safe` (strong green + "Vom Personal bestätigt"). Strong green only after staff confirmation; light green never means confirmed.
 - **Safe** = staff confirmed no peanut AND no lupin AND no cross-contamination, and was not unsure about any ingredient.
 - **A stated allergen ("contains") can never be overridden**, not even by the staff.
 - Unknown dish → always `undefined`, even if the listed ingredients look harmless (menus omit ingredients).

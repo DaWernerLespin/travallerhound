@@ -62,7 +62,8 @@ export default function AnalysisScreen() {
       </View>
       <View style={styles.legend}>
         <LegendDot color={colors.green} label="Sicher (bestätigt)" />
-        <LegendDot color={colors.orange} label="Nachfragen" />
+        <LegendDot color={colors.lightGreen} label="Wahrscheinlich sicher" />
+        <LegendDot color={colors.orange} label="Unklar" />
         <LegendDot color={colors.red} label="Risiko" />
       </View>
 
@@ -151,7 +152,7 @@ const styles = StyleSheet.create({
   head: { flexDirection: 'row', alignItems: 'flex-start', gap: 16, paddingHorizontal: 24, paddingTop: 8, paddingBottom: 14 },
   title: { fontFamily: fonts.display, fontSize: 26, lineHeight: 31, color: colors.ink, letterSpacing: -0.5 },
   source: { fontFamily: fonts.body, fontSize: 12, color: colors.muted, marginTop: 6 },
-  legend: { flexDirection: 'row', gap: 14, paddingHorizontal: 24, paddingBottom: 6 },
+  legend: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 14, rowGap: 4, paddingHorizontal: 24, paddingBottom: 6 },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   dot: { width: 7, height: 7, borderRadius: 4 },
   legendText: { fontFamily: fonts.body, fontSize: 11, color: colors.muted },

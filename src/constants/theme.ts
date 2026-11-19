@@ -11,6 +11,10 @@ export const colors = {
   line: '#e5e4dc',
   green: '#31936a',
   greenSoft: '#dff2e9',
+  /** "Wahrscheinlich sicher": friendlier than orange, clearly lighter than the confirmed green. */
+  lightGreen: '#8cc56a',
+  lightGreenText: '#4d7f2c',
+  lightGreenSoft: '#eef7e4',
   red: '#e4523f',
   redSoft: '#fce7e2',
   orange: '#e9952d',

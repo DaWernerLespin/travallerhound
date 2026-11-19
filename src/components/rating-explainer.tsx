@@ -8,8 +8,13 @@ const ROWS: { color: string; title: string; text: string }[] = [
   { color: colors.red, title: 'Risiko', text: 'Erdnuss oder Lupine steht auf der Karte oder steckt sicher im Gericht.' },
   {
     color: colors.orange,
-    title: 'Nachfragen / Unklar',
-    text: 'Gericht unbekannt, oder eine Zutat kann in Frankreich Erdnuss oder Lupine verstecken.',
+    title: 'Unklar',
+    text: 'Gericht unbekannt, zu allgemein, oder eine Zutat kann in Frankreich Erdnuss oder Lupine verstecken.',
+  },
+  {
+    color: colors.lightGreen,
+    title: 'Wahrscheinlich sicher',
+    text: 'Bekanntes Gericht ohne typische Risiken – trotzdem kurz beim Personal nachfragen.',
   },
   { color: colors.green, title: 'Sicher', text: 'Nur wenn das Personal Erdnuss, Lupine und Kreuzkontamination ausschließt.' },
 ];
