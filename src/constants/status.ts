@@ -7,9 +7,9 @@ type StatusLook = { label: string; short: string; color: string; background: str
 /** Red = risk, orange = unclear, light green = likely safe (still ask), strong green only when the staff confirmed. */
 export const STATUS_LOOK: Record<DishStatus, StatusLook> = {
   unsafe: { label: 'Nicht sicher', short: 'Risiko', color: colors.red, background: colors.redSoft },
-  undefined: { label: 'Unklar – bitte nachfragen', short: 'Unklar', color: colors.orangeText, background: colors.orangeSoft },
-  likely_safe: { label: 'Wahrscheinlich sicher – nachfragen', short: 'Nachfragen', color: colors.lightGreenText, background: colors.lightGreenSoft },
-  safe: { label: 'Sicher – vom Personal bestätigt', short: 'Sicher', color: colors.green, background: colors.greenSoft },
+  undefined: { label: 'Unklar, bitte nachfragen', short: 'Unklar', color: colors.orangeText, background: colors.orangeSoft },
+  likely_safe: { label: 'Wahrscheinlich sicher, bitte nachfragen', short: 'Nachfragen', color: colors.lightGreenText, background: colors.lightGreenSoft },
+  safe: { label: 'Sicher, vom Personal bestätigt', short: 'Sicher', color: colors.green, background: colors.greenSoft },
 };
 
 /** Shown while a dish is still being checked: everything starts red. */

@@ -95,7 +95,7 @@ export default function AnalysisScreen() {
               >
                 <Text style={[styles.filterText, hideRisk && styles.filterTextActive]}>
                   {hideRisk
-                    ? `${riskCount} ${riskCount === 1 ? 'Gericht' : 'Gerichte'} mit Risiko ausgeblendet – anzeigen`
+                    ? `${riskCount} ${riskCount === 1 ? 'Gericht' : 'Gerichte'} mit Risiko ausgeblendet. Anzeigen`
                     : `${riskCount} ${riskCount === 1 ? 'Gericht' : 'Gerichte'} mit Risiko ausblenden`}
                 </Text>
               </Pressable>

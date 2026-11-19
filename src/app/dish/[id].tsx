@@ -68,7 +68,7 @@ export default function DishDetailScreen() {
           {rating.findings.length === 0 && (
             <Text style={styles.body}>
               {item.generic
-                ? 'Das ist ein Oberbegriff – welches Gericht genau kommt, weiß nur das Personal.'
+                ? 'Das ist ein Oberbegriff. Welches Gericht genau kommt, weiß nur das Personal.'
                 : 'Keine Hinweise auf Erdnuss oder Lupine gefunden.'}
             </Text>
           )}
@@ -79,7 +79,7 @@ export default function DishDetailScreen() {
             <IngredientChips entries={ingredients} />
             {item.listedItems.length > 0 && <Text style={styles.note}>Auf der Karte: {item.listedItems.join(', ')}</Text>}
             {ingredients.some((entry) => !entry.onMenu) && (
-              <Text style={styles.note}>* typische Zutaten aus meiner Datenbank – jedes Restaurant kocht anders.</Text>
+              <Text style={styles.note}>* typische Zutaten aus meiner Datenbank. Jedes Restaurant kocht anders.</Text>
             )}
           </Section>
         )}

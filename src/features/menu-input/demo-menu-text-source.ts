@@ -15,7 +15,7 @@ export class DemoMenuTextSource implements MenuTextSource {
     return {
       kind: 'manual',
       reason:
-        'Texterkennung ist in dieser Demo-Version noch nicht eingebaut. Tippe die Gerichte ab – eine Zeile pro Gericht, Zutaten mit Komma dahinter.',
+        'Texterkennung ist in dieser Demo-Version noch nicht eingebaut. Tippe die Gerichte ab: eine Zeile pro Gericht, Zutaten mit Komma dahinter.',
     };
   }
 }

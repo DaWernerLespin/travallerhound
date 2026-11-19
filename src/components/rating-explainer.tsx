@@ -14,7 +14,7 @@ const ROWS: { color: string; title: string; text: string }[] = [
   {
     color: colors.lightGreen,
     title: 'Wahrscheinlich sicher',
-    text: 'Bekanntes Gericht ohne typische Risiken – trotzdem kurz beim Personal nachfragen.',
+    text: 'Bekanntes Gericht ohne typische Risiken. Trotzdem kurz beim Personal nachfragen.',
   },
   { color: colors.green, title: 'Sicher', text: 'Nur wenn das Personal Erdnuss, Lupine und Kreuzkontamination ausschließt.' },
 ];
@@ -37,7 +37,7 @@ export function RatingExplainer() {
           </View>
         ))}
         <Text style={styles.france}>
-          Typisch Frankreich: Frittiertes, Dressings und Mayonnaise oft mit Erdnussöl – Brot, Teig und Gebäck teils mit
+          Typisch Frankreich: Frittiertes, Dressings und Mayonnaise oft mit Erdnussöl, Brot, Teig und Gebäck teils mit
           Lupinenmehl. Darauf achte ich besonders.
         </Text>
       </View>

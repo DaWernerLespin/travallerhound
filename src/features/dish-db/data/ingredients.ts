@@ -17,9 +17,9 @@ function ing(
 }
 
 const FRYING_NOTE =
-  'In Frankreich wird oft in Erdnussöl (huile d’arachide) frittiert – das steht meist nicht auf der Karte.';
+  'In Frankreich wird oft in Erdnussöl (huile d’arachide) frittiert. Das steht meist nicht auf der Karte.';
 const FLOUR_NOTE =
-  'In Frankreich enthalten Backwaren und Teige teils Lupinenmehl (farine de lupin) – selten deklariert.';
+  'In Frankreich enthalten Backwaren und Teige teils Lupinenmehl (farine de lupin). Selten deklariert.';
 const OIL_NOTE = 'Für Dressings und Saucen wird in Frankreich teils Erdnussöl verwendet.';
 
 export const INGREDIENTS: Ingredient[] = [
@@ -35,7 +35,7 @@ export const INGREDIENTS: Ingredient[] = [
   ing('frites', 'frites', 'Pommes frites', ['frite', 'frites maison', 'pommes frites'], 'hidden', 'none', FRYING_NOTE),
   ing('friture', 'friture', 'Frittiertes', ['beignet', 'beignets', 'tempura', 'pane', 'panee', 'frit', 'frits'], 'hidden', 'hidden', `${FRYING_NOTE} Panaden können Lupinenmehl enthalten.`),
   ing('pommes-sarladaises', 'pommes sarladaises', 'Sarlat-Bratkartoffeln', ['sarladaise', 'sarladaises'], 'hidden', 'none', 'Meist in Entenfett gebraten, teils aber in Erdnussöl.'),
-  ing('huile', 'huile', 'Öl (unbestimmt)', ['huile vegetale'], 'hidden', 'none', 'Es ist nicht angegeben, welches Öl – in Frankreich häufig Erdnussöl.'),
+  ing('huile', 'huile', 'Öl (unbestimmt)', ['huile vegetale'], 'hidden', 'none', 'Es ist nicht angegeben, welches Öl. In Frankreich häufig Erdnussöl.'),
   ing('vinaigrette', 'vinaigrette', 'Vinaigrette', ['sauce vinaigrette'], 'hidden', 'none', OIL_NOTE),
   ing('mayonnaise', 'mayonnaise', 'Mayonnaise', ['mayo'], 'hidden', 'none', 'Hausgemachte Mayonnaise wird teils mit Erdnussöl gerührt.'),
   ing('sauce-cesar', 'sauce César', 'Caesar-Dressing', ['sauce cesar'], 'hidden', 'none', OIL_NOTE),
@@ -59,9 +59,9 @@ export const INGREDIENTS: Ingredient[] = [
   ing('pate-feuilletee', 'pâte feuilletée', 'Blätterteig', ['feuillete', 'feuilletee', 'croustillant', 'vol au vent', 'bouchee'], 'none', 'hidden', FLOUR_NOTE),
   ing('pate-brisee', 'pâte brisée', 'Mürbeteig', ['pate sablee', 'fond de tarte', 'tarte', 'tartelette', 'quiche'], 'none', 'hidden', FLOUR_NOTE),
   ing('chapelure', 'chapelure', 'Paniermehl/Gratinkruste', ['panure', 'gratine', 'gratinee', 'gratin'], 'none', 'hidden', 'Paniermehl und Gratinkruste können Lupinenmehl enthalten.'),
-  ing('bechamel', 'béchamel', 'Béchamelsauce', ['sauce bechamel', 'veloute', 'sauce blanche'], 'none', 'hidden', 'Mit Mehl gebunden – Lupinenmehl möglich.'),
+  ing('bechamel', 'béchamel', 'Béchamelsauce', ['sauce bechamel', 'veloute', 'sauce blanche'], 'none', 'hidden', 'Mit Mehl gebunden. Lupinenmehl möglich.'),
   ing('crepe', 'crêpe', 'Crêpe-Teig', ['crepes'], 'none', 'hidden', FLOUR_NOTE),
-  ing('galette', 'galette de sarrasin', 'Buchweizen-Galette', ['sarrasin', 'ble noir', 'galette'], 'none', 'hidden', 'Buchweizenteig wird teils mit Mehlmischungen gestreckt – Lupinenmehl möglich.'),
+  ing('galette', 'galette de sarrasin', 'Buchweizen-Galette', ['sarrasin', 'ble noir', 'galette'], 'none', 'hidden', 'Buchweizenteig wird teils mit Mehlmischungen gestreckt. Lupinenmehl möglich.'),
   ing('viennoiserie', 'viennoiserie', 'Feingebäck', ['croissant', 'brioche', 'pain au chocolat'], 'none', 'hidden', FLOUR_NOTE),
   ing('patisserie', 'pâtisserie', 'Gebäck/Kuchen', ['gateau', 'biscuit', 'genoise', 'pate a choux', 'choux', 'meringue', 'macaron', 'madeleine', 'financier'], 'none', 'hidden', FLOUR_NOTE),
   ing('pates', 'pâtes fraîches', 'Frische Nudeln', ['pates fraiches', 'raviolis', 'ravioles'], 'none', 'hidden', 'Frische und glutenfreie Nudeln enthalten teils Lupinenmehl.'),

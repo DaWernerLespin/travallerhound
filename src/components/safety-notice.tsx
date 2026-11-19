@@ -36,7 +36,7 @@ export function SafetyNotice({
           <Text style={styles.prototype}>Hinweis: In dieser Demo wird nur diese Mitteilung gezeigt. Die Überwachung ist nicht aktiv.</Text>
           <View style={styles.actions}>
             <PrimaryButton label="Verstanden & bestellen" icon="check" onPress={onConfirm} />
-            <PrimaryButton label="Ich bin in Begleitung – ohne Überwachung bestellen" variant="outline" onPress={onSkip} />
+            <PrimaryButton label="Ich bin in Begleitung, ohne Überwachung bestellen" variant="outline" onPress={onSkip} />
             <PrimaryButton label="Abbrechen" icon="close" variant="outline" onPress={onCancel} />
           </View>
         </View>
