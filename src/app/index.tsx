@@ -3,11 +3,26 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AllergenIcon, type Allergen } from '@/components/allergen-icon';
 import { Hound } from '@/components/hound';
 import { Icon } from '@/components/icon';
 import { PrimaryButton } from '@/components/primary-button';
 import { TopBar } from '@/components/top-bar';
 import { colors, fonts, shadow } from '@/constants/theme';
+import { DISHES } from '@/features/dish-db/data/dishes';
+import { INGREDIENTS } from '@/features/dish-db/data/ingredients';
+
+const ALLERGIES: { allergen: Allergen; label: string }[] = [
+  { allergen: 'peanut', label: 'Erdnussallergie gespeichert' },
+  { allergen: 'lupin', label: 'Lupinenallergie gespeichert' },
+];
+
+// Trust signals. The certification is a concept for the course prototype: a real release would be certified first.
+const TRUST = [
+  { icon: 'shield', text: 'Von Allergolog:innen geprüft' },
+  { icon: 'menu', text: `Kennt ${DISHES.length} französische Gerichte und ${INGREDIENTS.length} Zutaten` },
+  { icon: 'spark', text: 'Erkennt versteckte Risiken wie Erdnussöl und Lupinenmehl' },
+] as const;
 
 export default function WelcomeScreen() {
   return (
@@ -20,22 +35,25 @@ export default function WelcomeScreen() {
           Ich bin <Text style={styles.highlight}>Bruno.</Text>
           {'\n'}Deine Spürnase{'\n'}für Frankreich.
         </Text>
-        <Text style={styles.text}>
-          Ich kenne deine Erdnuss- und Lupinenallergie und prüfe für dich jedes Gericht – auch versteckte Zutaten.
-        </Text>
+        <View style={styles.pills}>
+          {ALLERGIES.map(({ allergen, label }) => (
+            <View key={allergen} style={styles.pill}>
+              <AllergenIcon allergen={allergen} size={26} />
+              <Text style={styles.pillText}>{label}</Text>
+            </View>
+          ))}
+        </View>
       </View>
       <View style={styles.mascot}>
-        <Hound size={190} />
-        <View style={styles.pills}>
-          <View style={styles.pill}>
-            <Icon name="shield" size={16} />
-            <Text style={styles.pillText}>Erdnussallergie gespeichert</Text>
+        <Hound size={170} />
+      </View>
+      <View style={styles.trust}>
+        {TRUST.map((item) => (
+          <View key={item.text} style={styles.trustRow}>
+            <Icon name={item.icon} size={16} color={colors.yellow} />
+            <Text style={styles.trustText}>{item.text}</Text>
           </View>
-          <View style={styles.pill}>
-            <Icon name="shield" size={16} />
-            <Text style={styles.pillText}>Lupinenallergie gespeichert</Text>
-          </View>
-        </View>
+        ))}
       </View>
       <View style={styles.footer}>
         <PrimaryButton label="Speisekarte prüfen" variant="cream" onPress={() => router.push('/menu')} />
@@ -57,19 +75,21 @@ const styles = StyleSheet.create({
   },
   title: { fontFamily: fonts.display, fontSize: 36, lineHeight: 40, color: colors.cream, letterSpacing: -0.8 },
   highlight: { color: colors.yellow },
-  text: { fontFamily: fonts.body, fontSize: 15, lineHeight: 23, color: colors.welcomeText, marginTop: 16, maxWidth: 320 },
   mascot: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  pills: { marginTop: -18, gap: 6, alignItems: 'center' },
+  pills: { marginTop: 18, flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   pill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 7,
     backgroundColor: colors.paper,
     borderRadius: 30,
-    paddingVertical: 8,
-    paddingHorizontal: 13,
+    paddingVertical: 6,
+    paddingHorizontal: 11,
     ...shadow,
   },
   pillText: { fontFamily: fonts.bodyBold, fontSize: 11, color: colors.ink },
+  trust: { paddingHorizontal: 26, paddingBottom: 16, gap: 8 },
+  trustRow: { flexDirection: 'row', alignItems: 'center', gap: 9 },
+  trustText: { flex: 1, fontFamily: fonts.bodyMedium, fontSize: 13, lineHeight: 18, color: colors.welcomeText },
   footer: { paddingHorizontal: 24, paddingBottom: 20 },
 });
