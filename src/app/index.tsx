@@ -40,7 +40,12 @@ export default function WelcomeScreen() {
       </View>
 
       <View style={styles.center}>
-        <Logo size={124} variant="full" />
+        <View style={styles.brand}>
+          <Logo size={124} variant="full" />
+          <Text style={styles.wordmark}>
+            TravAller<Text style={styles.highlight}>Hound</Text>
+          </Text>
+        </View>
         <Text style={styles.title}>
           Ich bin <Text style={styles.highlight}>Bruno</Text>,{'\n'}deine Spürnase{'\n'}für Frankreich
         </Text>
@@ -78,6 +83,8 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24, gap: 20 },
   title: { fontFamily: fonts.display, fontSize: 30, lineHeight: 34, color: colors.ink, letterSpacing: -0.6, textAlign: 'center' },
   highlight: { color: colors.brand },
+  brand: { alignItems: 'center', gap: 6 },
+  wordmark: { fontFamily: fonts.wordmark, fontSize: 30, lineHeight: 40, color: colors.ink },
   badges: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 6 },
   badge: {
     flexDirection: 'row',

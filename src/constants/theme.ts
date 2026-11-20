@@ -32,6 +32,8 @@ export const fonts = {
   bodyBold: 'DMSans_700Bold',
   display: 'Manrope_800ExtraBold',
   displayBold: 'Manrope_700Bold',
+  /** App name (wordmark) on the start screen. */
+  wordmark: 'Pattaya_400Regular',
 };
 
 export const radius = { card: 19, button: 18, pill: 30 };
