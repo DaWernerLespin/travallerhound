@@ -13,6 +13,8 @@ import { Platform } from 'react-native';
 const AZURE_KEY = process.env.EXPO_PUBLIC_AZURE_SPEECH_KEY;
 const AZURE_REGION = process.env.EXPO_PUBLIC_AZURE_SPEECH_REGION ?? 'westeurope';
 const AZURE_VOICE = process.env.EXPO_PUBLIC_AZURE_SPEECH_VOICE ?? 'fr-FR-DeniseNeural';
+/** Speaking speed of the Azure voice relative to normal, e.g. '-10%' slower, '35%' faster. */
+const AZURE_RATE = '35%';
 
 /** Audio already generated in this session, so the same sentence costs one request only. */
 const audioCache = new Map<string, string>();
@@ -40,7 +42,7 @@ async function azureAudio(text: string): Promise<string> {
   if (cached) return cached;
   const ssml =
     `<speak version="1.0" xml:lang="fr-FR"><voice name="${AZURE_VOICE}">` +
-    `<prosody rate="-5%">${escapeXml(text)}</prosody></voice></speak>`;
+    `<prosody rate="${AZURE_RATE}">${escapeXml(text)}</prosody></voice></speak>`;
   const response = await fetch(`https://${AZURE_REGION}.tts.speech.microsoft.com/cognitiveservices/v1`, {
     method: 'POST',
     headers: {
