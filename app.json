@@ -36,7 +36,8 @@
           "cameraPermission": "TravAllerHound braucht die Kamera, um den QR-Code der Speisekarte zu lesen.",
           "barcodeScannerEnabled": true
         }
-      ]
+      ],
+      "expo-audio"
     ],
     "experiments": {
       "typedRoutes": true,
