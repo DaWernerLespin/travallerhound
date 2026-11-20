@@ -80,6 +80,7 @@ describe('visit session', () => {
     {
       items: [],
       sourceLabel: null,
+      menuId: null,
       scanStartedAt: null,
       verdicts: {},
       messages: [],
@@ -89,7 +90,7 @@ describe('visit session', () => {
       ordered: {},
       introduced: false,
     },
-    { type: 'loadMenu', items: [], sourceLabel: 'Demo', now: 0 },
+    { type: 'loadMenu', items: [], sourceLabel: 'Demo', menuId: null, now: 0 },
   );
 
   it('adds a dish to the Wunschliste only once and removes it again', () => {

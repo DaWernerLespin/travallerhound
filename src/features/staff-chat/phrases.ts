@@ -81,6 +81,10 @@ const PHRASES: Record<string, Template> = {
     de: () => 'Nein, ohne Erdnüsse und ohne Lupinen.',
     fr: () => 'Non, sans arachide et sans lupin.',
   },
+  reply_traces: {
+    de: () => 'Auf der Verpackung steht: „Kann Spuren von Erdnüssen enthalten“.',
+    fr: () => 'L’emballage indique : « peut contenir des traces d’arachide ».',
+  },
   reply_with_change: {
     de: (p) => `Ja, mit einer Änderung: ${p.noteDe}.`,
     fr: (p) => `Oui, avec une modification : ${p.noteFr}.`,

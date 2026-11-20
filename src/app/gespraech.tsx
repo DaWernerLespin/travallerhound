@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View, type ScrollViewInstance } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View, type ScrollViewInstance } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ChatBubble } from '@/components/chat-bubble';
@@ -9,8 +9,9 @@ import { Icon } from '@/components/icon';
 import { PrimaryButton } from '@/components/primary-button';
 import { StaffChecklist } from '@/components/staff-checklist';
 import { StatusBadge } from '@/components/status-badge';
+import { FEATURES } from '@/constants/features';
 import { colors, fonts } from '@/constants/theme';
-import { ORDER_NOTES } from '@/features/order/notes';
+import { findNote, ORDER_NOTES } from '@/features/order/notes';
 import type { StaffReply } from '@/features/staff-chat/types';
 import { useRenderedPhrases } from '@/features/staff-chat/use-rendered';
 import { useVisitChat } from '@/features/staff-chat/use-visit-chat';
@@ -88,7 +89,13 @@ export default function VisitChatScreen() {
       </ScrollView>
 
       {staffMode ? (
-        <StaffPanel key={chat.activeQuestion?.id} replies={chat.staffReplies} onReply={chat.reply} />
+        <StaffPanel
+          key={chat.activeQuestion?.id}
+          replies={chat.staffReplies}
+          scripted={chat.scripted}
+          personaLabel={chat.personaLabel}
+          onReply={chat.reply}
+        />
       ) : (
         <View style={styles.footer}>
           {chat.focus && chat.openQuestions.length > 0 && (
@@ -111,6 +118,16 @@ export default function VisitChatScreen() {
             <PrimaryButton label={`Zur Bestellliste (${confirmed.length})`} icon="list" onPress={() => router.push('/bestellung')} />
           )}
           <PrimaryButton label="Weitere Gerichte hinzufügen" icon="plus" variant="outline" onPress={() => router.push('/analysis')} />
+          {/* Later: free text with online translation. Built as a placeholder, switched off by FEATURES.freeChat. */}
+          <View style={[styles.freeText, !FEATURES.freeChat && styles.disabled]}>
+            <TextInput
+              style={styles.freeInput}
+              editable={FEATURES.freeChat}
+              placeholder={FEATURES.freeChat ? 'Eigene Nachricht schreiben' : 'Freie Nachricht · bald verfügbar'}
+              placeholderTextColor={colors.muted}
+            />
+            <Icon name="arrow" size={18} color={colors.muted} />
+          </View>
         </View>
       )}
     </SafeAreaView>
@@ -121,13 +138,31 @@ export default function VisitChatScreen() {
  * Shown while the phone is with the staff: French only, big tap targets. Can be folded away to read the chat.
  * "Oui, avec une modification" lets the staff pick the change (e.g. salad instead of fries) that makes the dish safe.
  */
-function StaffPanel({ replies, onReply }: { replies: StaffReply[]; onReply: (reply: StaffReply, noteId?: string) => void }) {
+function StaffPanel({
+  replies,
+  scripted,
+  personaLabel,
+  onReply,
+}: {
+  replies: StaffReply[];
+  /** Demo restaurants: the prepared answer of this restaurant's staff. */
+  scripted: { reply: StaffReply; noteId?: string } | null;
+  personaLabel: string | null;
+  onReply: (reply: StaffReply, noteId?: string) => void;
+}) {
   const [open, setOpen] = useState(true);
   const [needsNote, setNeedsNote] = useState<StaffReply | null>(null);
+  const [showAll, setShowAll] = useState(false);
+  const scriptedNote = scripted?.noteId ? findNote(scripted.noteId) : undefined;
+  const [scriptedText] = useRenderedPhrases(
+    scripted ? [scriptedNote ? { ...scripted.reply.phrase, params: { noteFr: scriptedNote.fr, noteDe: scriptedNote.de } } : scripted.reply.phrase] : [],
+    'fr',
+  );
   const texts = useRenderedPhrases(
     replies.map((r) => (r.needsNote ? { ...r.phrase, params: { noteFr: '…', noteDe: '…' } } : r.phrase)),
     'fr',
   );
+  const demo = scripted && !showAll;
   return (
     <View style={styles.staffPanel}>
       <Pressable onPress={() => setOpen((value) => !value)} style={styles.staffHead} accessibilityRole="button" accessibilityState={{ expanded: open }}>
@@ -141,7 +176,22 @@ function StaffPanel({ replies, onReply }: { replies: StaffReply[]; onReply: (rep
           <Icon name="chevron" size={18} color={colors.cream} />
         </View>
       </Pressable>
-      {open && !needsNote && (
+      {open && demo && (
+        <View style={styles.replyGap}>
+          <Text style={styles.demoHint}>Demo · Personal: {personaLabel}</Text>
+          <Pressable
+            onPress={() => onReply(scripted.reply, scripted.noteId)}
+            style={({ pressed }) => [styles.reply, styles[scripted.reply.tone], pressed && styles.pressed]}
+            accessibilityRole="button"
+          >
+            <Text style={styles.replyText}>{scriptedText ?? '…'}</Text>
+          </Pressable>
+          <Pressable onPress={() => setShowAll(true)} hitSlop={6}>
+            <Text style={styles.demoLink}>Andere Antwort wählen</Text>
+          </Pressable>
+        </View>
+      )}
+      {open && !demo && !needsNote && (
         <ScrollView style={styles.replyList} contentContainerStyle={styles.replyGap}>
           {replies.map((reply, index) => (
             <Pressable
@@ -155,7 +205,7 @@ function StaffPanel({ replies, onReply }: { replies: StaffReply[]; onReply: (rep
           ))}
         </ScrollView>
       )}
-      {open && needsNote && (
+      {open && !demo && needsNote && (
         <ScrollView style={styles.replyList} contentContainerStyle={styles.replyGap}>
           {ORDER_NOTES.map((note) => (
             <Pressable
@@ -233,4 +283,19 @@ const styles = StyleSheet.create({
   negative: { backgroundColor: colors.redSoft },
   neutral: { backgroundColor: colors.paper },
   replyText: { fontFamily: fonts.bodyBold, fontSize: 14, color: colors.ink },
+  demoHint: { fontFamily: fonts.bodyMedium, fontSize: 11, color: colors.welcomeText },
+  demoLink: { fontFamily: fonts.bodyBold, fontSize: 12, color: colors.yellow, textAlign: 'center', paddingVertical: 4 },
+  freeText: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.line,
+    backgroundColor: colors.paper,
+    paddingHorizontal: 14,
+    paddingVertical: 4,
+  },
+  disabled: { opacity: 0.5 },
+  freeInput: { flex: 1, minHeight: 40, fontFamily: fonts.body, fontSize: 14, color: colors.ink },
 });

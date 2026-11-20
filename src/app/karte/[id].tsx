@@ -14,7 +14,7 @@ export default function DemoMenuLinkScreen() {
 
   useEffect(() => {
     if (!menu) return;
-    loadMenuText(menu.text, menu.title);
+    loadMenuText(menu.text, menu.title, menu.id);
     router.replace('/analysis');
   }, [menu, loadMenuText]);
 

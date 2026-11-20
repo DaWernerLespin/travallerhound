@@ -21,8 +21,8 @@ export function useMenuInput(onLoaded: () => void) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const load = (text: string, sourceLabel: string) => {
-    const count = loadMenuText(text, sourceLabel);
+  const load = (text: string, sourceLabel: string, menuId?: string) => {
+    const count = loadMenuText(text, sourceLabel, menuId);
     if (count === 0) {
       setError('Ich habe keine Gerichte gefunden. Schreib bitte ein Gericht pro Zeile.');
       return;
@@ -76,7 +76,7 @@ export function useMenuInput(onLoaded: () => void) {
     await handleFile({ uri: asset.uri, name: asset.name, mimeType: asset.mimeType, size: asset.size });
   };
 
-  const loadDemo = (menu: DemoMenu) => load(menu.text, menu.title);
+  const loadDemo = (menu: DemoMenu) => load(menu.text, menu.title, menu.id);
 
   const submitText = (text: string) => load(text, manualFile ? manualFile.name : 'Eigene Eingabe');
 

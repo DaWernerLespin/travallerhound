@@ -15,6 +15,8 @@ import type { ChatMessage } from '@/features/staff-chat/types';
 type SessionState = {
   items: MenuItem[];
   sourceLabel: string | null;
+  /** Id of the loaded demo menu (for the demo staff answers), null for typed menus. */
+  menuId: string | null;
   scanStartedAt: number | null;
   verdicts: Record<string, StaffVerdict>;
   /** One chat for the whole visit. */
@@ -31,7 +33,7 @@ type SessionState = {
 };
 
 type Action =
-  | { type: 'loadMenu'; items: MenuItem[]; sourceLabel: string; now: number }
+  | { type: 'loadMenu'; items: MenuItem[]; sourceLabel: string; menuId: string | null; now: number }
   | { type: 'addMessage'; message: ChatMessage }
   | { type: 'setVerdict'; itemId: string; verdict: StaffVerdict }
   | { type: 'markOrdered'; itemIds: string[] }
@@ -44,6 +46,7 @@ type Action =
 const INITIAL: SessionState = {
   items: [],
   sourceLabel: null,
+  menuId: null,
   scanStartedAt: null,
   verdicts: {},
   messages: [],
@@ -57,7 +60,7 @@ const INITIAL: SessionState = {
 export function sessionReducer(state: SessionState, action: Action): SessionState {
   switch (action.type) {
     case 'loadMenu':
-      return { ...INITIAL, items: action.items, sourceLabel: action.sourceLabel, scanStartedAt: action.now };
+      return { ...INITIAL, items: action.items, sourceLabel: action.sourceLabel, menuId: action.menuId, scanStartedAt: action.now };
     case 'addMessage':
       return { ...state, messages: [...state.messages, action.message] };
     case 'setVerdict':
@@ -92,7 +95,7 @@ export function sessionReducer(state: SessionState, action: Action): SessionStat
 
 type SessionValue = SessionState & {
   /** Parses menu text and starts a new analysis. Returns the number of dishes found. */
-  loadMenuText: (text: string, sourceLabel: string) => number;
+  loadMenuText: (text: string, sourceLabel: string, menuId?: string) => number;
   addMessage: (message: ChatMessage) => void;
   setVerdict: (itemId: string, verdict: StaffVerdict) => void;
   markOrdered: (itemIds: string[]) => void;
@@ -108,9 +111,9 @@ const SessionContext = createContext<SessionValue | null>(null);
 export function MenuSessionProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(sessionReducer, INITIAL);
 
-  const loadMenuText = useCallback((text: string, sourceLabel: string) => {
+  const loadMenuText = useCallback((text: string, sourceLabel: string, menuId?: string) => {
     const items = parseMenuText(text, dishKnowledge);
-    dispatch({ type: 'loadMenu', items, sourceLabel, now: Date.now() });
+    dispatch({ type: 'loadMenu', items, sourceLabel, menuId: menuId ?? null, now: Date.now() });
     return items.length;
   }, []);
   const actions = useMemo(

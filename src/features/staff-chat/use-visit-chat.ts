@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+import { FEATURES } from '@/constants/features';
 import { EMPTY_VERDICT } from '@/features/dish-rating/types';
 import type { MenuItem } from '@/features/menu-input/types';
 import { baseRating, useMenuSession, useRatings } from '@/features/menu-session/session-context';
@@ -7,6 +8,7 @@ import { findNote, withNotes } from '@/features/order/notes';
 import { focusDish, orderOverview, type WishState } from '@/features/order/order-state';
 
 import { applyReply, buildChecklist, buildQuestions, isAnswered, isFinalReply } from './conversation';
+import { staffPersona } from './demo-staff';
 import { staffReplySource, translator } from './index';
 import type { Phrase, Question, StaffReply } from './types';
 
@@ -113,6 +115,13 @@ export function useVisitChat({ active = true }: { active?: boolean } = {}) {
 
   const itemOf = (id: string): MenuItem | undefined => itemsById.get(id);
 
+  // Demo restaurants: the answer prepared for this restaurant's staff.
+  const persona = FEATURES.demoStaff ? staffPersona(session.menuId) : null;
+  const staffReplies = activeQuestion ? staffReplySource.repliesFor(activeQuestion) : [];
+  const scriptedAnswer = persona && activeQuestion && focus ? persona.answer({ question: activeQuestion, item: focus, findings: baseRating(focus).findings }) : null;
+  const scriptedReply = scriptedAnswer ? staffReplies.find((r) => r.id === scriptedAnswer.replyId) : undefined;
+  const scripted = scriptedReply ? { reply: scriptedReply, noteId: scriptedAnswer?.noteId } : null;
+
   return {
     messages: session.messages,
     overview,
@@ -121,7 +130,9 @@ export function useVisitChat({ active = true }: { active?: boolean } = {}) {
     openQuestions: focusId ? openQuestionsOf(focusId) : [],
     checklist: focusId ? buildChecklist(questionsById.get(focusId) ?? [], verdict) : [],
     activeQuestion,
-    staffReplies: activeQuestion ? staffReplySource.repliesFor(activeQuestion) : [],
+    staffReplies,
+    scripted,
+    personaLabel: persona?.label ?? null,
     notes: session.notes,
     itemOf,
     ask,
