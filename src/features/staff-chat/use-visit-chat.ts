@@ -13,6 +13,8 @@ import { staffReplySource, translator } from './index';
 import type { Phrase, Question, StaffReply } from './types';
 
 let messageCounter = 0;
+/** How long the virtual demo staff "types" before answering. */
+const VIRTUAL_STAFF_DELAY_MS = 900;
 const nextId = () => `m${++messageCounter}`;
 
 /**
@@ -82,25 +84,45 @@ export function useVisitChat({ active = true }: { active?: boolean } = {}) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [overview.confirmed.join(), overview.dropped.join()]);
 
-  const ask = async (question: Question) => {
+  // Demo restaurants: the staff is virtual and answers by itself, as prepared for that restaurant.
+  // The real product hands the phone to the staff instead (StaffPanel).
+  const persona = FEATURES.demoStaff ? staffPersona(session.menuId) : null;
+  const [staffTyping, setStaffTyping] = useState(false);
+
+  const answer = async (question: Question, staffReply: StaffReply, noteId?: string) => {
     if (!focusId) return;
-    await send('traveler', question.phrase, focusId);
+    const picked = noteId ? findNote(noteId) : undefined;
+    const phrase = picked ? { ...staffReply.phrase, params: { noteDe: picked.de, noteFr: picked.fr } } : staffReply.phrase;
+    await send('staff', phrase, focusId);
+    if (picked) session.toggleNote(focusId, picked.id, true);
+    session.setVerdict(focusId, applyReply(verdict, question, staffReply));
+  };
+
+  const ask = async (question: Question) => {
+    if (!focus || staffTyping) return;
+    await send('traveler', question.phrase, focus.id);
+    const scripted = persona?.answer({ question, item: focus, findings: baseRating(focus).findings });
+    const scriptedReply = scripted && staffReplySource.repliesFor(question).find((r) => r.id === scripted.replyId);
+    if (scripted && scriptedReply) {
+      setStaffTyping(true);
+      await new Promise((resolve) => setTimeout(resolve, VIRTUAL_STAFF_DELAY_MS));
+      await answer(question, scriptedReply, scripted.noteId);
+      setStaffTyping(false);
+      return;
+    }
     setActiveQuestion(question);
   };
 
-  const reply = async (answer: StaffReply, noteId?: string) => {
-    if (!activeQuestion || !focusId) return;
-    const picked = noteId ? findNote(noteId) : undefined;
-    const phrase = picked ? { ...answer.phrase, params: { noteDe: picked.de, noteFr: picked.fr } } : answer.phrase;
-    await send('staff', phrase, focusId);
-    if (picked) session.toggleNote(focusId, picked.id, true);
-    session.setVerdict(focusId, applyReply(verdict, activeQuestion, answer));
-    if (isFinalReply(answer)) setActiveQuestion(null);
+  /** Real staff (no demo restaurant): the answer tapped on the hand-over panel. */
+  const reply = async (staffReply: StaffReply, noteId?: string) => {
+    if (!activeQuestion) return;
+    await answer(activeQuestion, staffReply, noteId);
+    if (isFinalReply(staffReply)) setActiveQuestion(null);
   };
 
   /** Ask about another dish of the Wunschliste next (not while the staff is answering). */
   const choose = (id: string) => {
-    if (!activeQuestion) session.setFocus(id);
+    if (!activeQuestion && !staffTyping) session.setFocus(id);
   };
 
   /** Orders all dishes on the Bestellliste at once, with their notes (French for the staff). */
@@ -115,13 +137,6 @@ export function useVisitChat({ active = true }: { active?: boolean } = {}) {
 
   const itemOf = (id: string): MenuItem | undefined => itemsById.get(id);
 
-  // Demo restaurants: the answer prepared for this restaurant's staff.
-  const persona = FEATURES.demoStaff ? staffPersona(session.menuId) : null;
-  const staffReplies = activeQuestion ? staffReplySource.repliesFor(activeQuestion) : [];
-  const scriptedAnswer = persona && activeQuestion && focus ? persona.answer({ question: activeQuestion, item: focus, findings: baseRating(focus).findings }) : null;
-  const scriptedReply = scriptedAnswer ? staffReplies.find((r) => r.id === scriptedAnswer.replyId) : undefined;
-  const scripted = scriptedReply ? { reply: scriptedReply, noteId: scriptedAnswer?.noteId } : null;
-
   return {
     messages: session.messages,
     overview,
@@ -130,9 +145,10 @@ export function useVisitChat({ active = true }: { active?: boolean } = {}) {
     openQuestions: focusId ? openQuestionsOf(focusId) : [],
     checklist: focusId ? buildChecklist(questionsById.get(focusId) ?? [], verdict) : [],
     activeQuestion,
-    staffReplies,
-    scripted,
-    personaLabel: persona?.label ?? null,
+    staffReplies: activeQuestion ? staffReplySource.repliesFor(activeQuestion) : [],
+    /** Demo: the staff is virtual and answers automatically. */
+    virtualStaff: persona ? persona.label : null,
+    staffTyping,
     notes: session.notes,
     itemOf,
     ask,

@@ -7,7 +7,8 @@ import type { Question } from './types';
 /**
  * Demo only: how the staff of each demo restaurant answers (prepared in advance, as agreed with Jana).
  * Each restaurant has its own attitude, so all paths of the app show up in a test.
- * When a demo menu is loaded, the staff screen offers the prepared answer; other answers stay reachable.
+ * In the demo the staff is virtual: it answers by itself as prepared here. The real product hands the phone
+ * to the staff instead (quick replies in the chat), so real staff can give their own input.
  */
 export type ScriptedAnswer = { replyId: string; noteId?: string };
 

@@ -11,7 +11,7 @@ import { StaffChecklist } from '@/components/staff-checklist';
 import { StatusBadge } from '@/components/status-badge';
 import { FEATURES } from '@/constants/features';
 import { colors, fonts } from '@/constants/theme';
-import { findNote, ORDER_NOTES } from '@/features/order/notes';
+import { ORDER_NOTES } from '@/features/order/notes';
 import type { StaffReply } from '@/features/staff-chat/types';
 import { useRenderedPhrases } from '@/features/staff-chat/use-rendered';
 import { useVisitChat } from '@/features/staff-chat/use-visit-chat';
@@ -68,6 +68,7 @@ export default function VisitChatScreen() {
             </Text>
             {chat.focusRating && <StatusBadge status={chat.focusRating.status} />}
           </View>
+          {chat.virtualStaff && <Text style={styles.demoHint}>Demo · virtuelles Personal: {chat.virtualStaff}</Text>}
           {chat.checklist.length > 0 && <StaffChecklist items={chat.checklist} />}
         </View>
       )}
@@ -86,16 +87,11 @@ export default function VisitChatScreen() {
         {chat.messages.map((message) => (
           <ChatBubble key={message.id} side={message.side} fr={message.fr} de={message.de} />
         ))}
+        {chat.staffTyping && <Text style={styles.typing}>Personal antwortet …</Text>}
       </ScrollView>
 
       {staffMode ? (
-        <StaffPanel
-          key={chat.activeQuestion?.id}
-          replies={chat.staffReplies}
-          scripted={chat.scripted}
-          personaLabel={chat.personaLabel}
-          onReply={chat.reply}
-        />
+        <StaffPanel key={chat.activeQuestion?.id} replies={chat.staffReplies} onReply={chat.reply} />
       ) : (
         <View style={styles.footer}>
           {chat.focus && chat.openQuestions.length > 0 && (
@@ -138,31 +134,13 @@ export default function VisitChatScreen() {
  * Shown while the phone is with the staff: French only, big tap targets. Can be folded away to read the chat.
  * "Oui, avec une modification" lets the staff pick the change (e.g. salad instead of fries) that makes the dish safe.
  */
-function StaffPanel({
-  replies,
-  scripted,
-  personaLabel,
-  onReply,
-}: {
-  replies: StaffReply[];
-  /** Demo restaurants: the prepared answer of this restaurant's staff. */
-  scripted: { reply: StaffReply; noteId?: string } | null;
-  personaLabel: string | null;
-  onReply: (reply: StaffReply, noteId?: string) => void;
-}) {
+function StaffPanel({ replies, onReply }: { replies: StaffReply[]; onReply: (reply: StaffReply, noteId?: string) => void }) {
   const [open, setOpen] = useState(true);
   const [needsNote, setNeedsNote] = useState<StaffReply | null>(null);
-  const [showAll, setShowAll] = useState(false);
-  const scriptedNote = scripted?.noteId ? findNote(scripted.noteId) : undefined;
-  const [scriptedText] = useRenderedPhrases(
-    scripted ? [scriptedNote ? { ...scripted.reply.phrase, params: { noteFr: scriptedNote.fr, noteDe: scriptedNote.de } } : scripted.reply.phrase] : [],
-    'fr',
-  );
   const texts = useRenderedPhrases(
     replies.map((r) => (r.needsNote ? { ...r.phrase, params: { noteFr: '…', noteDe: '…' } } : r.phrase)),
     'fr',
   );
-  const demo = scripted && !showAll;
   return (
     <View style={styles.staffPanel}>
       <Pressable onPress={() => setOpen((value) => !value)} style={styles.staffHead} accessibilityRole="button" accessibilityState={{ expanded: open }}>
@@ -176,22 +154,7 @@ function StaffPanel({
           <Icon name="chevron" size={18} color={colors.cream} />
         </View>
       </Pressable>
-      {open && demo && (
-        <View style={styles.replyGap}>
-          <Text style={styles.demoHint}>Demo · Personal: {personaLabel}</Text>
-          <Pressable
-            onPress={() => onReply(scripted.reply, scripted.noteId)}
-            style={({ pressed }) => [styles.reply, styles[scripted.reply.tone], pressed && styles.pressed]}
-            accessibilityRole="button"
-          >
-            <Text style={styles.replyText}>{scriptedText ?? '…'}</Text>
-          </Pressable>
-          <Pressable onPress={() => setShowAll(true)} hitSlop={6}>
-            <Text style={styles.demoLink}>Andere Antwort wählen</Text>
-          </Pressable>
-        </View>
-      )}
-      {open && !demo && !needsNote && (
+      {open && !needsNote && (
         <ScrollView style={styles.replyList} contentContainerStyle={styles.replyGap}>
           {replies.map((reply, index) => (
             <Pressable
@@ -205,7 +168,7 @@ function StaffPanel({
           ))}
         </ScrollView>
       )}
-      {open && !demo && needsNote && (
+      {open && needsNote && (
         <ScrollView style={styles.replyList} contentContainerStyle={styles.replyGap}>
           {ORDER_NOTES.map((note) => (
             <Pressable
@@ -283,8 +246,8 @@ const styles = StyleSheet.create({
   negative: { backgroundColor: colors.redSoft },
   neutral: { backgroundColor: colors.paper },
   replyText: { fontFamily: fonts.bodyBold, fontSize: 14, color: colors.ink },
-  demoHint: { fontFamily: fonts.bodyMedium, fontSize: 11, color: colors.welcomeText },
-  demoLink: { fontFamily: fonts.bodyBold, fontSize: 12, color: colors.yellow, textAlign: 'center', paddingVertical: 4 },
+  demoHint: { fontFamily: fonts.body, fontSize: 11, color: colors.muted, marginHorizontal: 20, marginTop: 2 },
+  typing: { fontFamily: fonts.bodyMedium, fontSize: 12, color: colors.muted, marginVertical: 6, marginLeft: 4 },
   freeText: {
     flexDirection: 'row',
     alignItems: 'center',
