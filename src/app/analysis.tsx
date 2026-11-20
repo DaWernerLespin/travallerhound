@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText } from '@/components/app-text';
 import { CollapsibleGroup } from '@/components/collapsible-group';
 import { DishCard } from '@/components/dish-card';
+import { PrimaryButton } from '@/components/primary-button';
 import { ProgressRing } from '@/components/progress-ring';
 import { RatingExplainer } from '@/components/rating-explainer';
 import { ScanArea } from '@/components/scan-area';
@@ -18,6 +19,7 @@ import type { MenuItem } from '@/features/menu-input/types';
 import { groupDishes } from '@/features/menu-session/group-dishes';
 import { useMenuSession } from '@/features/menu-session/session-context';
 import { useScan } from '@/features/menu-session/use-scan';
+import { useVisitChat } from '@/features/staff-chat/use-visit-chat';
 
 /** Opened via a QR link there is no previous screen – go to the menu input instead. */
 function goBack() {
@@ -32,8 +34,10 @@ const openDish = (id: string) => router.push({ pathname: '/dish/[id]', params: {
  * Afterwards they are grouped by menu section (collapsible) and sorted by risk, safest first.
  */
 export default function AnalysisScreen() {
-  const { items, sourceLabel } = useMenuSession();
+  const { items, sourceLabel, wishlist, addToWishlist, removeFromWishlist } = useMenuSession();
   const scan = useScan();
+  const { overview } = useVisitChat({ active: false });
+  const toggleWish = (id: string) => (wishlist.includes(id) ? removeFromWishlist(id) : addToWishlist(id));
   const [hideRisk, setHideRisk] = useState(false);
 
   if (items.length === 0) {
@@ -108,7 +112,17 @@ export default function AnalysisScreen() {
                 initiallyOpen
               >
                 {group.entries.map((entry) => (
-                  <Dish key={entry.item.id} item={entry.item} number={entry.number} status={entry.status} />
+                  <Dish
+                    key={entry.item.id}
+                    item={entry.item}
+                    number={entry.number}
+                    status={entry.status}
+                    wished={wishlist.includes(entry.item.id)}
+                    // Risky dishes can't go on the Wunschliste; ordered ones are done.
+                    onToggleWish={
+                      entry.status === 'unsafe' || overview.ordered.includes(entry.item.id) ? undefined : () => toggleWish(entry.item.id)
+                    }
+                  />
                 ))}
               </CollapsibleGroup>
             ))}
@@ -116,14 +130,46 @@ export default function AnalysisScreen() {
         )}
 
         <Text style={styles.hint}>
-          {scan.done ? 'Tippe auf ein Gericht für Details und um beim Personal nachzufragen.' : 'Du kannst Gerichte schon während der Prüfung öffnen.'}
+          {scan.done
+            ? 'Mit + setzt du Gerichte auf deine Wunschliste. Dann klärst du alle in einem Gespräch mit dem Personal und bestellst zusammen.'
+            : 'Du kannst Gerichte schon während der Prüfung öffnen.'}
         </Text>
       </ScrollView>
+
+      {scan.done && wishlist.length > 0 && (
+        <View style={styles.footer}>
+          {overview.pending.length > 0 && (
+            <PrimaryButton label={`Personal fragen (${overview.pending.length})`} icon="chevron" onPress={() => router.push('/gespraech')} />
+          )}
+          {(overview.confirmed.length > 0 || overview.pending.length === 0) && (
+            <PrimaryButton
+              label={`Bestellliste (${overview.confirmed.length})`}
+              icon="list"
+              variant={overview.pending.length > 0 ? 'outline' : 'ink'}
+              onPress={() => router.push('/bestellung')}
+            />
+          )}
+        </View>
+      )}
     </SafeAreaView>
   );
 }
 
-function Dish({ item, number, status, checking }: { item: MenuItem; number: number; status?: DishStatus; checking?: string }) {
+function Dish({
+  item,
+  number,
+  status,
+  checking,
+  wished,
+  onToggleWish,
+}: {
+  item: MenuItem;
+  number: number;
+  status?: DishStatus;
+  checking?: string;
+  wished?: boolean;
+  onToggleWish?: () => void;
+}) {
   return (
     <DishCard
       number={number}
@@ -132,6 +178,8 @@ function Dish({ item, number, status, checking }: { item: MenuItem; number: numb
       status={status}
       checking={checking}
       confirmed={status === 'safe'}
+      wished={wished}
+      onToggleWish={onToggleWish}
       onPress={() => openDish(item.id)}
     />
   );
@@ -163,5 +211,6 @@ const styles = StyleSheet.create({
   filterActive: { backgroundColor: colors.ink, borderColor: colors.ink },
   filterText: { fontFamily: fonts.bodyBold, fontSize: 12, color: colors.ink },
   filterTextActive: { color: colors.paper },
+  footer: { paddingHorizontal: 16, paddingBottom: 14, paddingTop: 8, gap: 8, borderTopWidth: 1, borderTopColor: colors.line },
   hint: { fontFamily: fonts.body, fontSize: 12, color: colors.muted, textAlign: 'center', marginTop: 16 },
 });

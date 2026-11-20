@@ -34,6 +34,8 @@ export type StaffReply = {
   phrase: Phrase;
   effect: ReplyEffect;
   tone: 'positive' | 'negative' | 'neutral';
+  /** The staff picks a preset change (e.g. "salad instead of fries") that makes the answer true. */
+  needsNote?: boolean;
 };
 
 /**
@@ -46,7 +48,10 @@ export interface StaffReplySource {
 
 export type ChatMessage = {
   id: string;
-  side: 'traveler' | 'staff';
+  /** `system` = Bruno's German status line in the chat (not shown to the staff). */
+  side: 'traveler' | 'staff' | 'system';
   fr: string;
   de: string;
+  /** Dish the message is about (none for the intro or the order). */
+  itemId?: string;
 };

@@ -22,7 +22,7 @@ const SOURCE_ORDER: FindingSource[] = ['staff', 'name', 'menu', 'db'];
 
 export default function DishDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { items } = useMenuSession();
+  const { items, wishlist, addToWishlist, removeFromWishlist, setFocus } = useMenuSession();
   const ratings = useRatings();
   const item = items.find((i) => i.id === id);
   const rating = item ? ratings[item.id] : undefined;
@@ -36,6 +36,7 @@ export default function DishDetailScreen() {
     );
   }
 
+  const wished = wishlist.includes(item.id);
   const stated = rating.findings.some((f) => f.level === 'contains' && f.source !== 'staff');
   const ingredients = dishIngredients(buildRatingInput(item, dishKnowledge));
 
@@ -95,12 +96,26 @@ export default function DishDetailScreen() {
             <Text style={styles.warning}>Dieses Gericht enthält einen deiner Auslöser. Wähle bitte ein anderes.</Text>
             <PrimaryButton label="Zurück zur Karte" icon="arrow" variant="outline" onPress={() => router.back()} />
           </>
+        ) : rating.status === 'safe' ? (
+          <PrimaryButton label="Zur Bestellliste" icon="list" onPress={() => router.push('/bestellung')} />
         ) : (
-          <PrimaryButton
-            label={rating.status === 'safe' ? 'Zum Gespräch & bestellen' : 'Personal fragen'}
-            icon="chevron"
-            onPress={() => router.push({ pathname: '/chat/[id]', params: { id: item.id } })}
-          />
+          <>
+            <PrimaryButton
+              label="Personal fragen"
+              icon="chevron"
+              onPress={() => {
+                addToWishlist(item.id);
+                setFocus(item.id);
+                router.push('/gespraech');
+              }}
+            />
+            <PrimaryButton
+              label={wished ? 'Von der Wunschliste nehmen' : 'Auf die Wunschliste'}
+              icon={wished ? 'close' : 'plus'}
+              variant="outline"
+              onPress={() => (wished ? removeFromWishlist(item.id) : addToWishlist(item.id))}
+            />
+          </>
         )}
       </View>
     </SafeAreaView>

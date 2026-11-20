@@ -14,7 +14,10 @@ export type IconName =
   | 'file'
   | 'text'
   | 'menu'
-  | 'qr';
+  | 'qr'
+  | 'plus'
+  | 'speaker'
+  | 'list';
 
 /** Line icons from the Click-Dummy (24×24). */
 export function Icon({ name, size = 22, color = colors.ink }: { name: IconName; size?: number; color?: string }) {
@@ -28,6 +31,19 @@ export function Icon({ name, size = 22, color = colors.ink }: { name: IconName; 
 }
 
 const PATHS: Record<IconName, React.ReactNode> = {
+  plus: <Path d="M12 5v14M5 12h14" />,
+  speaker: (
+    <>
+      <Path d="M4 9v6h4l5 4V5L8 9H4Z" />
+      <Path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" />
+    </>
+  ),
+  list: (
+    <>
+      <Path d="M9 6h11M9 12h11M9 18h11" />
+      <Path d="M4.5 6h.01M4.5 12h.01M4.5 18h.01" />
+    </>
+  ),
   qr: (
     <>
       <Rect x="4" y="4" width="6" height="6" rx="1" />

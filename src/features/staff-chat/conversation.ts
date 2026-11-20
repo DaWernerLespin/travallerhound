@@ -67,9 +67,19 @@ export function buildChecklist(questions: Question[], verdict: StaffVerdict): Ch
 
 const ASK_CHEF: StaffReply = { id: 'ask-chef', phrase: { id: 'reply_ask_chef' }, effect: {}, tone: 'neutral' };
 
+/** "Yes, with a change": the staff picks a preset note (e.g. salad instead of fries) that makes the answer true. */
+const withChange = (effect: StaffReply['effect']): StaffReply => ({
+  id: 'with-change',
+  phrase: { id: 'reply_with_change' },
+  effect,
+  tone: 'positive',
+  needsNote: true,
+});
+
 const REPLIES: Record<Question['topic'], StaffReply[]> = {
   allergens: [
     { id: 'none', phrase: { id: 'reply_none' }, effect: { peanut: 'absent', lupin: 'absent' }, tone: 'positive' },
+    withChange({ peanut: 'absent', lupin: 'absent' }),
     { id: 'peanut', phrase: { id: 'reply_peanut' }, effect: { peanut: 'present' }, tone: 'negative' },
     { id: 'lupin', phrase: { id: 'reply_lupin' }, effect: { lupin: 'present' }, tone: 'negative' },
     ASK_CHEF,
@@ -77,12 +87,14 @@ const REPLIES: Record<Question['topic'], StaffReply[]> = {
   ],
   cross: [
     { id: 'cross-none', phrase: { id: 'reply_cross_none' }, effect: { crossContamination: 'absent' }, tone: 'positive' },
+    withChange({ crossContamination: 'absent' }),
     { id: 'cross-possible', phrase: { id: 'reply_cross_possible' }, effect: { crossContamination: 'present' }, tone: 'negative' },
     ASK_CHEF,
     { id: 'unknown', phrase: { id: 'reply_unknown' }, effect: { crossContamination: 'unknown' }, tone: 'negative' },
   ],
   ingredient: [
     { id: 'ingredient-no', phrase: { id: 'reply_ingredient_no' }, effect: { ingredient: 'absent' }, tone: 'positive' },
+    withChange({ ingredient: 'absent' }),
     { id: 'ingredient-yes', phrase: { id: 'reply_ingredient_yes' }, effect: { ingredient: 'present' }, tone: 'negative' },
     ASK_CHEF,
     { id: 'unknown', phrase: { id: 'reply_unknown' }, effect: { ingredient: 'unknown' }, tone: 'negative' },
@@ -99,6 +111,18 @@ export class QuickReplySource implements StaffReplySource {
 /** True if the reply settles the question (asking the chef does not). */
 export function isFinalReply(reply: StaffReply): boolean {
   return Object.keys(reply.effect).length > 0;
+}
+
+/** True if every question of the dish has a final staff answer. */
+export function isAnswered(question: Question, verdict: StaffVerdict): boolean {
+  switch (question.topic) {
+    case 'allergens':
+      return verdict.peanut !== 'unasked' || verdict.lupin !== 'unasked';
+    case 'cross':
+      return verdict.crossContamination !== 'unasked';
+    case 'ingredient':
+      return question.ingredientId !== undefined && verdict.ingredients[question.ingredientId] !== undefined;
+  }
 }
 
 export function applyReply(verdict: StaffVerdict, question: Question, reply: StaffReply): StaffVerdict {

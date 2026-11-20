@@ -35,6 +35,10 @@ const PHRASES: Record<string, Template> = {
     de: (p) => `Enthält „${p.ingredientDe}“ Erdnüsse, Erdnussöl oder Lupinenmehl?`,
     fr: (p) => `Est-ce que « ${p.ingredientFr} » contient des arachides, de l’huile d’arachide ou de la farine de lupin ?`,
   },
+  order_list: {
+    de: (p) => `Vielen Dank für Ihre Hilfe! Ich bestelle gerne: ${p.listDe}`,
+    fr: (p) => `Merci beaucoup pour votre aide ! Je voudrais commander : ${p.listFr}`,
+  },
   order: {
     de: () => 'Vielen Dank für Ihre Hilfe! Dann nehme ich sehr gerne dieses Gericht.',
     fr: () => 'Merci beaucoup pour votre aide ! Je prends ce plat avec plaisir.',
@@ -76,6 +80,10 @@ const PHRASES: Record<string, Template> = {
   reply_ingredient_no: {
     de: () => 'Nein, ohne Erdnüsse und ohne Lupinen.',
     fr: () => 'Non, sans arachide et sans lupin.',
+  },
+  reply_with_change: {
+    de: (p) => `Ja, mit einer Änderung: ${p.noteDe}.`,
+    fr: (p) => `Oui, avec une modification : ${p.noteFr}.`,
   },
   reply_ingredient_yes: {
     de: () => 'Ja, das ist enthalten.',
