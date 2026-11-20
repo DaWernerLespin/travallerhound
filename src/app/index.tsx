@@ -41,13 +41,13 @@ export default function WelcomeScreen() {
 
       <View style={styles.center}>
         <View style={styles.brand}>
-          <Logo size={124} variant="full" />
+          <Logo size={110} variant="full" />
           <Text style={styles.wordmark}>
             TravAller<Text style={styles.highlight}>Hound</Text>
           </Text>
         </View>
         <Text style={styles.title}>
-          Ich bin <Text style={styles.highlight}>Bruno</Text>,{'\n'}deine Spürnase{'\n'}für Frankreich
+          Ich bin <Text style={styles.highlight}>Bruno</Text>, deine Spürnase für Frankreich
         </Text>
         <View style={styles.badges}>
           {ALLERGIES.map(({ allergen, label }) => (
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
   avatar: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
   avatarText: { fontFamily: fonts.display, fontSize: 14, color: colors.white },
   hello: { fontFamily: fonts.bodyBold, fontSize: 14, color: colors.ink },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24, gap: 20 },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24, gap: 40 },
   title: { fontFamily: fonts.display, fontSize: 30, lineHeight: 34, color: colors.ink, letterSpacing: -0.6, textAlign: 'center' },
   highlight: { color: colors.brand },
   brand: { alignItems: 'center', gap: 6 },
