@@ -103,6 +103,15 @@ describe('visit session', () => {
     expect(state.focusId).toBeNull();
   });
 
+  it('shows the intro and each dish result only once', () => {
+    let state = start;
+    for (let i = 0; i < 2; i++) {
+      state = sessionReducer(state, { type: 'addMessage', message: { id: `r${i}`, side: 'system', fr: '', de: 'ok', itemId: 'a', kind: 'safe' } });
+      state = sessionReducer(state, { type: 'addMessage', message: { id: `i${i}`, side: 'traveler', fr: 'x', de: 'x', kind: 'intro' } });
+    }
+    expect(state.messages).toHaveLength(2);
+  });
+
   it('toggles notes and orders several dishes at once', () => {
     let state = sessionReducer(start, { type: 'toggleNote', itemId: 'a', noteId: 'sans-sauce' });
     state = sessionReducer(state, { type: 'toggleNote', itemId: 'a', noteId: 'sans-sauce', on: true });

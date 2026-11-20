@@ -163,16 +163,8 @@ function segmentStyle(state: WishState, current: boolean) {
   return current ? styles.segmentNow : null;
 }
 
-/** Chat message: intro collapsed to one line, result cards for dishes, bubbles otherwise. */
+/** Chat message: result cards for dishes, bubbles otherwise (the intro to the staff is shown in full). */
 function Message({ message, name, notes }: { message: ChatMessage; name?: string; notes?: string[] }) {
-  const [open, setOpen] = useState(false);
-  if (message.kind === 'intro' && !open) {
-    return (
-      <Pressable onPress={() => setOpen(true)} style={styles.pill} accessibilityRole="button">
-        <Text style={styles.pillText}>✓ Allergie dem Personal erklärt · anzeigen</Text>
-      </Pressable>
-    );
-  }
   if (message.kind === 'safe' || message.kind === 'unsafe') {
     const safe = message.kind === 'safe';
     return (
@@ -272,8 +264,6 @@ const styles = StyleSheet.create({
   orderText: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.ink },
   messages: { paddingHorizontal: 14, paddingVertical: 10, gap: 6 },
   empty: { fontFamily: fonts.body, fontSize: 14, lineHeight: 21, color: colors.muted, textAlign: 'center', marginTop: 20, paddingHorizontal: 20 },
-  pill: { alignSelf: 'center', borderRadius: 14, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.paper, paddingVertical: 5, paddingHorizontal: 11, marginVertical: 4 },
-  pillText: { fontFamily: fonts.bodyMedium, fontSize: 12, color: colors.muted },
   result: { flexDirection: 'row', gap: 10, alignItems: 'flex-start', borderRadius: radius.card, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.paper, padding: 12, borderLeftWidth: 4, marginVertical: 4 },
   resultSafe: { borderLeftColor: colors.green },
   resultUnsafe: { borderLeftColor: colors.red },

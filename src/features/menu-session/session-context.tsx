@@ -61,8 +61,12 @@ export function sessionReducer(state: SessionState, action: Action): SessionStat
   switch (action.type) {
     case 'loadMenu':
       return { ...INITIAL, items: action.items, sourceLabel: action.sourceLabel, menuId: action.menuId, scanStartedAt: action.now };
-    case 'addMessage':
+    case 'addMessage': {
+      // The intro and each dish's result appear only once, even if they are triggered twice.
+      const { kind, itemId } = action.message;
+      if (kind && state.messages.some((m) => m.kind === kind && m.itemId === itemId)) return state;
       return { ...state, messages: [...state.messages, action.message] };
+    }
     case 'setVerdict':
       return { ...state, verdicts: { ...state.verdicts, [action.itemId]: action.verdict } };
     case 'markOrdered': {
