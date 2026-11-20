@@ -7,7 +7,6 @@ import { AppText } from '@/components/app-text';
 import { CollapsibleGroup } from '@/components/collapsible-group';
 import { DishCard } from '@/components/dish-card';
 import { PrimaryButton } from '@/components/primary-button';
-import { ProgressRing } from '@/components/progress-ring';
 import { RatingExplainer } from '@/components/rating-explainer';
 import { ScanArea } from '@/components/scan-area';
 import { TopBar } from '@/components/top-bar';
@@ -39,6 +38,7 @@ export default function AnalysisScreen() {
   const { overview } = useVisitChat({ active: false });
   const toggleWish = (id: string) => (wishlist.includes(id) ? removeFromWishlist(id) : addToWishlist(id));
   const [hideRisk, setHideRisk] = useState(false);
+  const [explain, setExplain] = useState(false);
 
   if (items.length === 0) {
     return (
@@ -58,22 +58,24 @@ export default function AnalysisScreen() {
     <SafeAreaView style={styles.screen}>
       <TopBar onBack={goBack} />
       <View style={styles.head}>
-        <View style={styles.flex}>
-          <AppText variant="eyebrow">{scan.done ? 'Deine Karte' : 'Live-Analyse'}</AppText>
-          <Text style={styles.title}>{scan.done ? 'Das habe ich gefunden.' : 'Einen Moment, ich schnüffle für dich.'}</Text>
-          {sourceLabel && <Text style={styles.source}>{sourceLabel}</Text>}
+        <Text style={styles.title}>{scan.done ? (sourceLabel ?? 'Deine Karte') : 'Ich prüfe die Karte …'}</Text>
+        <View style={styles.meta}>
+          <Text style={styles.source} numberOfLines={1}>
+            {scan.done ? `${items.length} ${items.length === 1 ? 'Gericht' : 'Gerichte'} geprüft` : (sourceLabel ?? '')}
+          </Text>
+          <Pressable onPress={() => setExplain((value) => !value)} hitSlop={8} accessibilityRole="button" accessibilityState={{ expanded: explain }}>
+            <Text style={styles.metaLink}>Wie bewerte ich?</Text>
+          </Pressable>
         </View>
-        <ProgressRing progress={scan.progress} secondsLeft={scan.secondsLeft} />
-      </View>
-      <View style={styles.legend}>
-        <LegendDot color={colors.green} label="Sicher (bestätigt)" />
-        <LegendDot color={colors.lightGreen} label="Wahrscheinlich sicher" />
-        <LegendDot color={colors.orange} label="Unklar" />
-        <LegendDot color={colors.red} label="Risiko" />
+        {!scan.done && (
+          <View style={styles.bar} accessibilityLabel={`Noch ${scan.secondsLeft} Sekunden`}>
+            <View style={[styles.barFill, { width: `${Math.min(100, scan.progress * 100)}%` }]} />
+          </View>
+        )}
       </View>
 
       <ScrollView contentContainerStyle={styles.list}>
-        <RatingExplainer />
+        {explain && <RatingExplainer bare />}
 
         {!scan.done ? (
           <ScanArea active progress={scan.progress} remaining={scan.duration - scan.elapsed}>
@@ -185,26 +187,17 @@ function Dish({
   );
 }
 
-function LegendDot({ color, label }: { color: string; label: string }) {
-  return (
-    <View style={styles.legendItem}>
-      <View style={[styles.dot, { backgroundColor: color }]} />
-      <Text style={styles.legendText}>{label}</Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.canvas },
+  screen: { flex: 1, backgroundColor: colors.cream },
   flex: { flex: 1 },
   content: { padding: 24 },
-  head: { flexDirection: 'row', alignItems: 'flex-start', gap: 16, paddingHorizontal: 24, paddingTop: 8, paddingBottom: 14 },
-  title: { fontFamily: fonts.display, fontSize: 26, lineHeight: 31, color: colors.ink, letterSpacing: -0.5 },
-  source: { fontFamily: fonts.body, fontSize: 12, color: colors.muted, marginTop: 6 },
-  legend: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 14, rowGap: 4, paddingHorizontal: 24, paddingBottom: 6 },
-  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  dot: { width: 7, height: 7, borderRadius: 4 },
-  legendText: { fontFamily: fonts.body, fontSize: 11, color: colors.muted },
+  head: { paddingHorizontal: 22, paddingTop: 4, paddingBottom: 12 },
+  title: { fontFamily: fonts.display, fontSize: 24, lineHeight: 29, color: colors.ink, letterSpacing: -0.5 },
+  meta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 6 },
+  source: { flex: 1, fontFamily: fonts.body, fontSize: 13, color: colors.muted },
+  metaLink: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.muted },
+  bar: { height: 4, borderRadius: 2, backgroundColor: colors.line, marginTop: 12, overflow: 'hidden' },
+  barFill: { height: 4, borderRadius: 2, backgroundColor: colors.ink },
   list: { paddingHorizontal: 16, paddingBottom: 24, gap: 4 },
   section: { fontFamily: fonts.display, fontSize: 11, letterSpacing: 1.6, textTransform: 'uppercase', color: colors.muted, marginTop: 10, marginBottom: 8, marginLeft: 6 },
   filter: { alignSelf: 'flex-start', borderRadius: 20, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.paper, paddingVertical: 7, paddingHorizontal: 12, marginVertical: 4 },

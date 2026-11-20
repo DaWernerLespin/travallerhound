@@ -28,7 +28,7 @@ export function PrimaryButton({
     >
       <Text style={[styles.label, variant === 'ink' ? styles.labelLight : styles.labelDark]}>{label}</Text>
       <View style={[styles.iconBox, variant === 'outline' && styles.iconBoxOutline]}>
-        <Icon name={icon} size={20} />
+        <Icon name={icon} size={20} color={variant === 'outline' ? colors.ink : colors.white} />
       </View>
     </Pressable>
   );
@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 14,
-    backgroundColor: colors.yellow,
+    backgroundColor: colors.brand,
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 12,

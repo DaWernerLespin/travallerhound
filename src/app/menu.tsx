@@ -1,11 +1,10 @@
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View, type ScrollViewInstance } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View, type ScrollViewInstance } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppText } from '@/components/app-text';
-import { CollapsibleGroup } from '@/components/collapsible-group';
 import { Icon, type IconName } from '@/components/icon';
 import { MenuTextEntry } from '@/components/menu-text-entry';
 import { TopBar } from '@/components/top-bar';
@@ -18,6 +17,7 @@ export default function MenuInputScreen() {
   const input = useMenuInput(() => router.push('/analysis'));
   const [text, setText] = useState('');
   const [typing, setTyping] = useState(false);
+  const [demosOpen, setDemosOpen] = useState(false);
   const scroll = useRef<ScrollViewInstance>(null);
   // Keep the text field above the keyboard: scroll down once the keyboard has opened.
   const revealEntry = () => setTimeout(() => scroll.current?.scrollToEnd({ animated: true }), 300);
@@ -30,9 +30,8 @@ export default function MenuInputScreen() {
       <TopBar onBack={() => router.back()} />
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView ref={scroll} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          <AppText variant="eyebrow">Schritt 1 von 2</AppText>
-          <AppText variant="display">Zeig mir, was auf der Karte steht</AppText>
-          <AppText style={styles.lead}>Scanne den QR-Code auf der Speisekarte oder tippe die Gerichte ab.</AppText>
+          <AppText variant="display">Zeig mir die Speisekarte</AppText>
+          <AppText style={styles.lead}>Scanne den QR-Code auf der Karte oder tippe die Gerichte ab.</AppText>
 
           {input.manualFile ? (
             <View style={styles.preview}>
@@ -60,26 +59,20 @@ export default function MenuInputScreen() {
             </View>
           ) : (
             <View style={styles.options}>
-              <Option icon="qr" title="QR-Code scannen" text="Code auf der Speisekarte scannen" onPress={() => router.push('/scan')} />
-              
-              {FEATURES.menuUpload && (
-                <Option icon="file" title="Bild oder PDF hochladen" text="PNG, JPG oder PDF der Speisekarte" onPress={input.uploadFile} />
-              )}
-              <Option icon="text" title="Text eingeben" text="Gerichte abtippen oder einfügen" onPress={() => setTyping((value) => !value)} open={typing} />
+              <Option icon="qr" title="QR-Code scannen" onPress={() => router.push('/scan')} />
+              {FEATURES.menuUpload && <Option icon="file" title="Bild oder PDF hochladen" onPress={input.uploadFile} />}
+              <Option icon="text" title="Text eingeben" onPress={() => setTyping((value) => !value)} open={typing} />
               {typing && textEntry}
               <Option
                 icon="camera"
                 title="Foto aufnehmen"
-                text={FEATURES.menuPhoto ? 'Speisekarte mit der Kamera fotografieren' : 'Bald verfügbar'}
+                text={FEATURES.menuPhoto ? undefined : 'Bald verfügbar'}
                 onPress={input.takePhoto}
                 disabled={!FEATURES.menuPhoto}
               />
-
-              <CollapsibleGroup title="Demo-Karten" subtitle="Ohne QR-Code direkt öffnen">
-                {DEMO_MENUS.map((menu) => (
-                  <Option key={menu.id} icon="menu" title={menu.title} text={menu.description} onPress={() => input.loadDemo(menu)} />
-                ))}
-              </CollapsibleGroup>
+              <Pressable onPress={() => setDemosOpen(true)} style={styles.demoLink} accessibilityRole="button">
+                <Text style={styles.demoLinkText}>Demo-Karte ohne QR-Code öffnen</Text>
+              </Pressable>
             </View>
           )}
 
@@ -88,6 +81,33 @@ export default function MenuInputScreen() {
         </ScrollView>
 
       </KeyboardAvoidingView>
+
+      {/* Demo menus slide up as a sheet; the screen behind stays where it is. */}
+      <Modal visible={demosOpen} transparent animationType="slide" onRequestClose={() => setDemosOpen(false)}>
+        <Pressable style={styles.dim} onPress={() => setDemosOpen(false)} accessibilityLabel="Schließen" />
+        <View style={styles.sheet}>
+          <View style={styles.grip} />
+          <Text style={styles.sheetTitle}>Demo-Karten</Text>
+          <View style={styles.demoList}>
+            {DEMO_MENUS.map((menu, index) => (
+              <Pressable
+                key={menu.id}
+                onPress={() => {
+                  setDemosOpen(false);
+                  input.loadDemo(menu);
+                }}
+                style={({ pressed }) => [styles.demoRow, index > 0 && styles.demoRowBorder, pressed && styles.pressed]}
+                accessibilityRole="button"
+              >
+                <Text style={styles.demoName} numberOfLines={1}>
+                  {menu.title}
+                </Text>
+                <Icon name="chevron" size={16} color={colors.muted} />
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -102,7 +122,7 @@ function Option({
 }: {
   icon: IconName;
   title: string;
-  text: string;
+  text?: string;
   onPress: () => void;
   disabled?: boolean;
   /** Content opens below this option: the arrow points down. */
@@ -116,12 +136,10 @@ function Option({
       accessibilityRole="button"
       accessibilityState={{ disabled }}
     >
-      <View style={styles.optionIcon}>
-        <Icon name={icon} size={22} />
-      </View>
+      <Icon name={icon} size={22} color={colors.brand} />
       <View style={styles.flex}>
         <Text style={styles.optionTitle}>{title}</Text>
-        <Text style={styles.optionText}>{text}</Text>
+        {text && <Text style={styles.optionText}>{text}</Text>}
       </View>
       {!disabled && (
         <View style={open && styles.chevronOpen}>
@@ -135,30 +153,23 @@ function Option({
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.cream },
   flex: { flex: 1 },
-  content: { paddingHorizontal: 24, paddingTop: 12, paddingBottom: 32 },
-  lead: { color: colors.muted, marginTop: 12 },
-  options: { marginTop: 24, gap: 10 },
+  // Title on top, options low in thumb reach: the free space sits in between.
+  content: { flexGrow: 1, paddingHorizontal: 24, paddingTop: 4, paddingBottom: 20 },
+  lead: { color: colors.muted, marginTop: 8 },
+  options: { marginTop: 'auto', paddingTop: 24, gap: 8 },
   option: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
+    gap: 12,
     backgroundColor: colors.paper,
-    borderRadius: radius.card,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#ece9df',
-    padding: 14,
+    borderColor: colors.line,
+    padding: 15,
   },
   pressed: { opacity: 0.7 },
   disabled: { opacity: 0.45 },
   chevronOpen: { transform: [{ rotate: '90deg' }] },
-  optionIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    backgroundColor: colors.yellowSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   optionTitle: { fontFamily: fonts.displayBold, fontSize: 15, color: colors.ink },
   optionText: { fontFamily: fonts.body, fontSize: 12, color: colors.muted, marginTop: 2 },
   preview: { marginTop: 20, gap: 10 },
@@ -177,4 +188,14 @@ const styles = StyleSheet.create({
   error: { fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.red, marginTop: 14 },
   cancel: { alignItems: 'center', paddingTop: 4 },
   cancelText: { fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.muted },
+  demoLink: { alignItems: 'center', paddingTop: 8 },
+  demoLinkText: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.muted },
+  dim: { flex: 1, backgroundColor: 'rgba(20,47,54,0.35)' },
+  sheet: { backgroundColor: colors.cream, borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingHorizontal: 18, paddingTop: 10, paddingBottom: 28 },
+  grip: { alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: colors.line, marginBottom: 12 },
+  sheetTitle: { fontFamily: fonts.display, fontSize: 16, color: colors.ink, marginBottom: 10, marginLeft: 4 },
+  demoList: { backgroundColor: colors.paper, borderRadius: 16, borderWidth: 1, borderColor: colors.line },
+  demoRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 13, paddingHorizontal: 14 },
+  demoRowBorder: { borderTopWidth: 1, borderTopColor: colors.line },
+  demoName: { flex: 1, fontFamily: fonts.bodyBold, fontSize: 14, color: colors.ink },
 });

@@ -5,14 +5,14 @@ import { colors } from '@/constants/theme';
 export type Allergen = 'peanut' | 'lupin';
 
 /** Peanut or lupin drawn inside a red "no" sign (24×24). */
-export function AllergenIcon({ allergen, size = 22 }: { allergen: Allergen; size?: number }) {
+export function AllergenIcon({ allergen, size = 22, color }: { allergen: Allergen; size?: number; color?: string }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <G transform="translate(4.8 4.8) scale(0.6)" stroke={colors.ink} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
+      <G transform="translate(4.8 4.8) scale(0.6)" stroke={color ?? colors.ink} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
         {GLYPHS[allergen]}
       </G>
-      <Circle cx="12" cy="12" r="10" stroke={colors.red} strokeWidth={2} />
-      <Line x1="5" y1="5" x2="19" y2="19" stroke={colors.red} strokeWidth={2} strokeLinecap="round" />
+      <Circle cx="12" cy="12" r="10" stroke={color ?? colors.red} strokeWidth={2} />
+      <Line x1="5" y1="5" x2="19" y2="19" stroke={color ?? colors.red} strokeWidth={2} strokeLinecap="round" />
     </Svg>
   );
 }

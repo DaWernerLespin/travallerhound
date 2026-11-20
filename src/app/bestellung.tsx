@@ -4,6 +4,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppText } from '@/components/app-text';
+import { CollapsibleGroup } from '@/components/collapsible-group';
 import { Icon } from '@/components/icon';
 import { PrimaryButton } from '@/components/primary-button';
 import { SafetyNotice } from '@/components/safety-notice';
@@ -40,8 +41,7 @@ export default function OrderListScreen() {
     <SafeAreaView style={styles.screen}>
       <TopBar onBack={back} />
       <ScrollView contentContainerStyle={styles.content}>
-        <AppText variant="eyebrow">Bestellliste</AppText>
-        <AppText variant="display">Das kannst du bestellen</AppText>
+        <AppText variant="display">Bestellliste</AppText>
 
         {confirmed.length === 0 && ordered.length === 0 && (
           <Text style={styles.empty}>
@@ -49,56 +49,61 @@ export default function OrderListScreen() {
           </Text>
         )}
 
-        {confirmed.map((id) => {
-          const item = chat.itemOf(id);
-          if (!item) return null;
-          const notes = chat.notes[id] ?? [];
-          return (
-            <View key={id} style={styles.card}>
-              <View style={styles.cardHead}>
-                <View style={styles.flex}>
-                  <Text style={styles.dish}>{item.name}</Text>
-                  <Text style={styles.sub}>{germanLabel(item)}</Text>
-                </View>
-                <Pressable onPress={() => session.removeFromWishlist(id)} hitSlop={8} accessibilityLabel="Entfernen">
-                  <Icon name="close" size={18} color={colors.muted} />
-                </Pressable>
-              </View>
-              {notes.length > 0 && <Text style={styles.notes}>{withNotes('', notes, 'de').replace(/^, /, '')}</Text>}
-              <Pressable onPress={() => setEditing(editing === id ? null : id)} style={styles.noteToggle}>
-                <Text style={styles.noteToggleText}>{editing === id ? 'Fertig' : 'Hinweis hinzufügen'}</Text>
-              </Pressable>
-              {editing === id && (
-                <View style={styles.noteWrap}>
-                  {ORDER_NOTES.map((note) => {
-                    const on = notes.includes(note.id);
-                    return (
-                      <Pressable
-                        key={note.id}
-                        onPress={() => session.toggleNote(id, note.id)}
-                        style={[styles.noteChip, on && styles.noteChipOn]}
-                        accessibilityRole="checkbox"
-                        accessibilityState={{ checked: on }}
-                      >
-                        <Text style={[styles.noteChipText, on && styles.noteChipTextOn]}>{note.de}</Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              )}
-            </View>
-          );
-        })}
-
+        {/* One list: large French for the staff, German small underneath for the traveller. */}
         {confirmed.length > 0 && (
           <View style={styles.staffCard}>
             <View style={styles.cardHead}>
               <Text style={[styles.flex, styles.staffTitle]}>Pour le personnel</Text>
               <Pressable onPress={() => speakFrench(`Je voudrais commander : ${frenchList.replace(/•/g, '')}`)} hitSlop={8} accessibilityLabel="Vorlesen">
-                <Icon name="speaker" size={18} color={colors.yellow} />
+                <Icon name="speaker" size={18} color={colors.brand} />
               </Pressable>
             </View>
-            <Text style={styles.staffText}>{frenchList}</Text>
+            {confirmed.map((id, index) => {
+              const item = chat.itemOf(id);
+              if (!item) return null;
+              const notes = chat.notes[id] ?? [];
+              const noteText = (lang: 'de' | 'fr') => withNotes('', notes, lang).replace(/^, /, '');
+              return (
+                <View key={id} style={[styles.item, index > 0 && styles.itemBorder]}>
+                  <View style={styles.cardHead}>
+                    <View style={styles.flex}>
+                      <Text style={styles.dish}>{item.name}</Text>
+                      {notes.length > 0 && <Text style={styles.frNote}>{noteText('fr')}</Text>}
+                      <Text style={styles.sub}>
+                        {germanLabel(item)}
+                        {notes.length > 0 ? ` · ${noteText('de')}` : ''}
+                      </Text>
+                    </View>
+                    <Pressable onPress={() => session.removeFromWishlist(id)} hitSlop={8} accessibilityLabel="Entfernen">
+                      <Icon name="close" size={16} color={colors.welcomeText} />
+                    </Pressable>
+                  </View>
+                  <Pressable onPress={() => setEditing(editing === id ? null : id)} style={styles.noteToggle}>
+                    <Text style={styles.noteToggleText}>
+                      {editing === id ? 'Fertig' : notes.length > 0 ? 'Hinweis ändern' : 'Hinweis hinzufügen'}
+                    </Text>
+                  </Pressable>
+                  {editing === id && (
+                    <View style={styles.noteWrap}>
+                      {ORDER_NOTES.map((note) => {
+                        const on = notes.includes(note.id);
+                        return (
+                          <Pressable
+                            key={note.id}
+                            onPress={() => session.toggleNote(id, note.id)}
+                            style={[styles.noteChip, on && styles.noteChipOn]}
+                            accessibilityRole="checkbox"
+                            accessibilityState={{ checked: on }}
+                          >
+                            <Text style={[styles.noteChipText, on && styles.noteChipTextOn]}>{note.de}</Text>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                  )}
+                </View>
+              );
+            })}
           </View>
         )}
 
@@ -113,7 +118,11 @@ export default function OrderListScreen() {
         )}
 
         <Group title="Noch mit dem Personal klären" ids={pending} itemOf={chat.itemOf} />
-        <Group title="Fällt weg (nicht sicher)" ids={dropped} itemOf={chat.itemOf} muted />
+        {dropped.length > 0 && (
+          <CollapsibleGroup title={`${dropped.length} ${dropped.length === 1 ? 'Gericht' : 'Gerichte'} nicht bestellbar`}>
+            <Group ids={dropped} itemOf={chat.itemOf} muted />
+          </CollapsibleGroup>
+        )}
         <Group title="Bereits bestellt" ids={ordered} itemOf={chat.itemOf} notes={chat.notes} />
       </ScrollView>
 
@@ -124,7 +133,9 @@ export default function OrderListScreen() {
         {(pending.length > 0 || (ordered.length > 0 && confirmed.length === 0)) && (
           <PrimaryButton label="Zurück zum Gespräch" icon="chevron" variant="outline" onPress={() => router.push('/gespraech')} />
         )}
-        <PrimaryButton label="Weitere Gerichte hinzufügen" icon="plus" variant="outline" onPress={() => router.push('/analysis')} />
+        <Pressable onPress={() => router.push('/analysis')} style={styles.addLink} accessibilityRole="button">
+          <Text style={styles.addLinkText}>+ Weitere Gerichte hinzufügen</Text>
+        </Pressable>
       </View>
 
       <SafetyNotice visible={noticeVisible} onCancel={() => setNoticeVisible(false)} onConfirm={() => order(true)} onSkip={() => order(false)} />
@@ -139,7 +150,7 @@ function Group({
   muted = false,
   notes = {},
 }: {
-  title: string;
+  title?: string;
   ids: string[];
   itemOf: (id: string) => { name: string } | undefined;
   muted?: boolean;
@@ -148,7 +159,7 @@ function Group({
   if (ids.length === 0) return null;
   return (
     <View style={styles.group}>
-      <Text style={styles.groupTitle}>{title}</Text>
+      {title && <Text style={styles.groupTitle}>{title}</Text>}
       {ids.map((id) => (
         <Text key={id} style={[styles.groupItem, muted && styles.groupItemMuted]}>
           {withNotes(itemOf(id)?.name ?? '', notes[id] ?? [], 'de')}
@@ -163,21 +174,21 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   content: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 24, gap: 10 },
   empty: { fontFamily: fonts.body, fontSize: 14, lineHeight: 21, color: colors.muted, marginTop: 8 },
-  card: { backgroundColor: colors.paper, borderRadius: radius.card, borderWidth: 1, borderColor: '#ece9df', padding: 14, gap: 6 },
   cardHead: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
-  dish: { fontFamily: fonts.displayBold, fontSize: 15, color: colors.ink },
-  sub: { fontFamily: fonts.body, fontSize: 12, color: colors.muted, marginTop: 2 },
-  notes: { fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.green },
-  noteToggle: { alignSelf: 'flex-start', paddingVertical: 2 },
-  noteToggleText: { fontFamily: fonts.bodyBold, fontSize: 12, color: colors.coral },
-  noteWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  noteChip: { borderRadius: 14, borderWidth: 1, borderColor: colors.line, paddingVertical: 5, paddingHorizontal: 10 },
-  noteChipOn: { backgroundColor: colors.ink, borderColor: colors.ink },
-  noteChipText: { fontFamily: fonts.bodyMedium, fontSize: 12, color: colors.ink },
-  noteChipTextOn: { color: colors.paper },
-  staffCard: { backgroundColor: colors.ink, borderRadius: radius.card, padding: 14, gap: 6 },
-  staffTitle: { fontFamily: fonts.display, fontSize: 12, letterSpacing: 1.2, textTransform: 'uppercase', color: colors.yellow },
-  staffText: { fontFamily: fonts.bodyMedium, fontSize: 15, lineHeight: 22, color: colors.cream },
+  staffCard: { backgroundColor: colors.ink, borderRadius: 20, paddingHorizontal: 16, paddingTop: 14, paddingBottom: 6, marginTop: 6 },
+  staffTitle: { fontFamily: fonts.display, fontSize: 11, letterSpacing: 1.2, textTransform: 'uppercase', color: colors.welcomeText },
+  item: { paddingVertical: 10 },
+  itemBorder: { borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.14)' },
+  dish: { fontFamily: fonts.displayBold, fontSize: 16, lineHeight: 21, color: colors.white },
+  frNote: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.cream, marginTop: 2 },
+  sub: { fontFamily: fonts.body, fontSize: 12, color: colors.welcomeText, marginTop: 4 },
+  noteToggle: { alignSelf: 'flex-start', paddingVertical: 2, marginTop: 6 },
+  noteToggleText: { fontFamily: fonts.bodyBold, fontSize: 12, color: colors.brand },
+  noteWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
+  noteChip: { borderRadius: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)', paddingVertical: 5, paddingHorizontal: 10 },
+  noteChipOn: { backgroundColor: colors.cream, borderColor: colors.cream },
+  noteChipText: { fontFamily: fonts.bodyMedium, fontSize: 12, color: colors.cream },
+  noteChipTextOn: { color: colors.ink },
   banner: { flexDirection: 'row', gap: 12, borderRadius: radius.card, padding: 14, backgroundColor: colors.greenSoft },
   bannerTitle: { fontFamily: fonts.display, fontSize: 15, color: colors.ink },
   bannerText: { fontFamily: fonts.body, fontSize: 13, lineHeight: 19, color: colors.ink, marginTop: 3 },
@@ -186,4 +197,6 @@ const styles = StyleSheet.create({
   groupItem: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.ink },
   groupItemMuted: { color: colors.muted, textDecorationLine: 'line-through' },
   footer: { paddingHorizontal: 16, paddingBottom: 14, paddingTop: 8, gap: 8 },
+  addLink: { alignItems: 'center', paddingVertical: 6 },
+  addLinkText: { fontFamily: fonts.bodyBold, fontSize: 13.5, color: colors.ink },
 });

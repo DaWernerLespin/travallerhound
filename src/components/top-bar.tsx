@@ -1,47 +1,24 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
-import { colors, fonts } from '@/constants/theme';
+import { colors } from '@/constants/theme';
 
 import { Icon } from './icon';
+import { Logo } from './logo';
 
-export function TopBar({ onBack, light = false }: { onBack?: () => void; light?: boolean }) {
-  const tint = light ? colors.cream : colors.ink;
+/** Header of every screen after the start: back + small logo. No app name, no profile (that lives on the start screen). */
+export function TopBar({ onBack }: { onBack?: () => void }) {
   return (
     <View style={styles.bar}>
-      {onBack ? (
-        <Pressable onPress={onBack} accessibilityLabel="Zurück" hitSlop={10} style={styles.side}>
-          <Icon name="arrow" color={tint} />
+      {onBack && (
+        <Pressable onPress={onBack} accessibilityLabel="Zurück" hitSlop={10}>
+          <Icon name="arrow" color={colors.ink} />
         </Pressable>
-      ) : (
-        <View style={styles.side} />
       )}
-      <Text style={[styles.brand, { color: tint }]}>
-        TravAller<Text style={[styles.brandStrong, { color: light ? colors.yellow : colors.coral }]}>Hound</Text>
-      </Text>
-      <View style={[styles.side, styles.profile]} accessibilityLabel="Profil von Alex">
-        <Text style={styles.profileText}>A</Text>
-      </View>
+      <Logo size={28} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  bar: {
-    height: 64,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-  },
-  side: { width: 36, height: 36, justifyContent: 'center' },
-  brand: { fontFamily: fonts.displayBold, fontSize: 16, letterSpacing: -0.6 },
-  brandStrong: { fontFamily: fonts.display },
-  profile: {
-    borderRadius: 18,
-    backgroundColor: colors.yellow,
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.38)',
-  },
-  profileText: { fontFamily: fonts.display, fontSize: 13, color: colors.ink },
+  bar: { height: 56, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 20 },
 });

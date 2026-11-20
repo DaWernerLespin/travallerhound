@@ -33,6 +33,8 @@ export default function VisitChatScreen() {
   const { pending, confirmed, dropped, ordered } = chat.overview;
   const total = chat.wishlist.length;
   const allChecked = total > 0 && pending.length === 0;
+  /** Accent only once every dish is checked and at least one can be ordered. */
+  const orderReady = allChecked && confirmed.length > 0;
   const staffMode = chat.activeQuestion !== null;
 
   return (
@@ -48,14 +50,14 @@ export default function VisitChatScreen() {
         </View>
         <Pressable
           onPress={() => router.push('/bestellung')}
-          style={[styles.order, allChecked && confirmed.length > 0 && styles.orderReady]}
+          style={[styles.order, orderReady && styles.orderReady]}
           accessibilityRole="button"
           accessibilityLabel={`Bestellliste, ${confirmed.length} Gerichte`}
         >
-          <Icon name="list" size={16} />
-          <Text style={styles.orderText}>
+          <Icon name="list" size={16} color={orderReady ? colors.white : colors.ink} />
+          <Text style={[styles.orderText, orderReady && styles.orderTextReady]}>
             Bestellliste {confirmed.length}
-            {allChecked && confirmed.length > 0 ? ' →' : ''}
+            {orderReady ? ' →' : ''}
           </Text>
         </Pressable>
       </View>
@@ -260,8 +262,9 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 11,
   },
-  orderReady: { backgroundColor: colors.yellow, borderColor: colors.yellow, shadowColor: colors.yellow, shadowOpacity: 0.6, shadowRadius: 8, shadowOffset: { width: 0, height: 0 }, elevation: 4 },
+  orderReady: { backgroundColor: colors.brand, borderColor: colors.brand, shadowColor: colors.brand, shadowOpacity: 0.6, shadowRadius: 8, shadowOffset: { width: 0, height: 0 }, elevation: 4 },
   orderText: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.ink },
+  orderTextReady: { color: colors.white },
   messages: { paddingHorizontal: 14, paddingVertical: 10, gap: 6 },
   empty: { fontFamily: fonts.body, fontSize: 14, lineHeight: 21, color: colors.muted, textAlign: 'center', marginTop: 20, paddingHorizontal: 20 },
   result: { flexDirection: 'row', gap: 10, alignItems: 'flex-start', borderRadius: radius.card, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.paper, padding: 12, borderLeftWidth: 4, marginVertical: 4 },
