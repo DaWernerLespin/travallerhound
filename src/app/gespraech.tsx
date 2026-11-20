@@ -7,11 +7,15 @@ import { ChatBubble } from '@/components/chat-bubble';
 import { Icon } from '@/components/icon';
 import { FEATURES } from '@/constants/features';
 import { colors, fonts, radius } from '@/constants/theme';
+import type { MenuItem } from '@/features/menu-input/types';
 import { ORDER_NOTES, withNotes } from '@/features/order/notes';
 import type { WishState } from '@/features/order/order-state';
 import type { ChatMessage, StaffReply } from '@/features/staff-chat/types';
 import { useRenderedPhrases } from '@/features/staff-chat/use-rendered';
 import { useVisitChat } from '@/features/staff-chat/use-visit-chat';
+
+/** Result cards are for the traveller: German dish name when the dish is known, else the menu name. */
+const germanName = (item?: MenuItem) => (item ? (item.match?.dish.de ?? item.name) : undefined);
 
 const back = () => (router.canGoBack() ? router.back() : router.replace('/analysis'));
 
@@ -68,7 +72,7 @@ export default function VisitChatScreen() {
           </Text>
         )}
         {chat.messages.map((message) => (
-          <Message key={message.id} message={message} name={message.itemId ? chat.itemOf(message.itemId)?.name : undefined} notes={message.itemId ? chat.notes[message.itemId] : undefined} />
+          <Message key={message.id} message={message} name={message.itemId ? germanName(chat.itemOf(message.itemId)) : undefined} notes={message.itemId ? chat.notes[message.itemId] : undefined} />
         ))}
         {chat.staffTyping && <Text style={styles.typing}>Personal antwortet …</Text>}
         {allChecked && !staffMode && (
