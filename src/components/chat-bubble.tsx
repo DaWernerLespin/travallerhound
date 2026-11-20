@@ -25,7 +25,9 @@ export function ChatBubble({ side, fr, de }: { side: 'traveler' | 'staff' | 'sys
           <Text style={[styles.label, traveler && styles.labelLight]}>{traveler ? 'Du' : 'Personal'}</Text>
           {traveler && (
             <Pressable onPress={() => speakFrench(fr)} hitSlop={10} accessibilityRole="button" accessibilityLabel="Auf Französisch vorlesen">
-              <Icon name="speaker" size={16} color={colors.yellow} />
+              <View style={styles.speaker}>
+                <Icon name="speaker" size={16} color={colors.white} />
+              </View>
             </Pressable>
           )}
         </View>
@@ -45,8 +47,9 @@ const styles = StyleSheet.create({
   traveler: { backgroundColor: colors.ink, borderBottomRightRadius: 5 },
   staff: { backgroundColor: colors.paper, borderWidth: 1, borderColor: colors.line, borderBottomLeftRadius: 5 },
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 4 },
-  label: { fontFamily: fonts.display, fontSize: 9, letterSpacing: 1.2, textTransform: 'uppercase', color: colors.coral },
-  labelLight: { color: colors.yellow },
+  label: { fontFamily: fonts.display, fontSize: 9, letterSpacing: 1.2, textTransform: 'uppercase', color: colors.muted },
+  labelLight: { color: colors.welcomeText },
+  speaker: { opacity: 0.55 },
   fr: { fontFamily: fonts.bodyMedium, fontSize: 15, lineHeight: 21, color: colors.ink },
   frLight: { color: colors.white },
   divider: { height: 1, backgroundColor: colors.line, marginVertical: 7 },

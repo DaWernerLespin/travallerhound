@@ -10,7 +10,7 @@ import { focusDish, orderOverview, type WishState } from '@/features/order/order
 import { applyReply, buildChecklist, buildQuestions, isAnswered, isFinalReply } from './conversation';
 import { staffPersona } from './demo-staff';
 import { staffReplySource, translator } from './index';
-import type { Phrase, Question, StaffReply } from './types';
+import type { ChatMessage, Phrase, Question, StaffReply } from './types';
 
 let messageCounter = 0;
 /** How long the virtual demo staff "types" before answering. */
@@ -49,11 +49,13 @@ export function useVisitChat({ active = true }: { active?: boolean } = {}) {
   const focus = focusId ? itemsById.get(focusId) : undefined;
   const verdict = focusId ? (session.verdicts[focusId] ?? EMPTY_VERDICT) : EMPTY_VERDICT;
 
-  const send = async (side: 'traveler' | 'staff', phrase: Phrase, itemId?: string) => {
+  const send = async (side: 'traveler' | 'staff', phrase: Phrase, itemId?: string, kind?: ChatMessage['kind']) => {
     const [fr, de] = await Promise.all([translator.render(phrase, 'fr'), translator.render(phrase, 'de')]);
-    session.addMessage({ id: nextId(), side, fr, de, itemId });
+    session.addMessage({ id: nextId(), side, fr, de, itemId, kind });
   };
-  const note = (de: string, itemId?: string) => session.addMessage({ id: nextId(), side: 'system', fr: '', de, itemId });
+  /** Result card for a dish (German, for the traveller). */
+  const result = (kind: 'safe' | 'unsafe', de: string, itemId: string) =>
+    session.addMessage({ id: nextId(), side: 'system', fr: '', de, itemId, kind });
 
   // Explain the allergy right away when the chat opens with dishes to check, and only once per visit.
   const introSent = useRef(false);
@@ -62,7 +64,7 @@ export function useVisitChat({ active = true }: { active?: boolean } = {}) {
     if (!needsIntro || introSent.current) return;
     introSent.current = true;
     session.markIntroduced();
-    void send('traveler', { id: 'intro' });
+    void send('traveler', { id: 'intro' }, undefined, 'intro');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [needsIntro]);
 
@@ -72,14 +74,14 @@ export function useVisitChat({ active = true }: { active?: boolean } = {}) {
     if (!active) return;
     for (const id of [...overview.confirmed, ...overview.dropped]) {
       const state: WishState = overview.confirmed.includes(id) ? 'confirmed' : 'dropped';
-      const mark = state === 'confirmed' ? '✓' : '✕';
-      const already = session.messages.some((m) => m.side === 'system' && m.itemId === id && m.de.startsWith(mark));
+      const kind = state === 'confirmed' ? 'safe' : 'unsafe';
+      const already = session.messages.some((m) => m.itemId === id && m.kind === kind);
       if (already || announced.current.get(id) === state) continue;
       announced.current.set(id, state);
       const item = itemsById.get(id);
       if (!item) continue;
-      if (state === 'confirmed') note(`✓ „${item.name}“ ist sicher und steht auf deiner Bestellliste.`, id);
-      else note(`✕ „${item.name}“ fällt weg. ${ratings[id]?.reason ?? ''}`.trim(), id);
+      if (state === 'confirmed') result('safe', 'Auf der Bestellliste', id);
+      else result('unsafe', `${ratings[id]?.reason ?? ''} Nicht bestellbar.`.trim(), id);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [overview.confirmed.join(), overview.dropped.join()]);
@@ -139,6 +141,9 @@ export function useVisitChat({ active = true }: { active?: boolean } = {}) {
 
   return {
     messages: session.messages,
+    wishlist: session.wishlist,
+    stateOf: (id: string): WishState =>
+      (Object.keys(overview) as WishState[]).find((state) => overview[state].includes(id)) ?? 'pending',
     overview,
     focus,
     focusRating: focusId ? ratings[focusId] : undefined,

@@ -35,7 +35,7 @@ const PATHS: Record<IconName, React.ReactNode> = {
   speaker: (
     <>
       <Path d="M4 9v6h4l5 4V5L8 9H4Z" />
-      <Path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" />
+      <Path d="M16.5 8.5a5 5 0 0 1 0 7" />
     </>
   ),
   list: (

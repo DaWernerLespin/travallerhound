@@ -54,4 +54,6 @@ export type ChatMessage = {
   de: string;
   /** Dish the message is about (none for the intro or the order). */
   itemId?: string;
+  /** intro = allergy explanation (shown collapsed); safe/unsafe = result card for the dish. */
+  kind?: 'intro' | 'safe' | 'unsafe';
 };
