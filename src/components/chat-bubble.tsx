@@ -1,13 +1,15 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { colors, fonts } from '@/constants/theme';
+
 import { SpeakButton } from './speak-button';
 
 /**
  * French text big, German translation small, like the Click-Dummy chat.
  * The speaker reads the French text aloud for the staff. `system` = Bruno's short German status line.
+ * `free` = typed as free text and machine-translated, marked so nobody mistakes it for a checked phrase.
  */
-export function ChatBubble({ side, fr, de }: { side: 'traveler' | 'staff' | 'system'; fr: string; de: string }) {
+export function ChatBubble({ side, fr, de, free = false }: { side: 'traveler' | 'staff' | 'system'; fr: string; de: string; free?: boolean }) {
   if (side === 'system') {
     return (
       <View style={styles.systemRow}>
@@ -20,10 +22,11 @@ export function ChatBubble({ side, fr, de }: { side: 'traveler' | 'staff' | 'sys
     <View style={[styles.row, traveler ? styles.rowRight : styles.rowLeft]}>
       <View style={[styles.bubble, traveler ? styles.traveler : styles.staff]}>
         <View style={styles.head}>
-          <Text style={[styles.label, traveler && styles.labelLight]}>{traveler ? 'Du' : 'Personal'}</Text>
-          {traveler && (
-            <SpeakButton text={fr} dim />
-          )}
+          <Text style={[styles.label, traveler && styles.labelLight]}>
+            {traveler ? 'Du' : 'Personal'}
+            {free ? ' · maschinell übersetzt' : ''}
+          </Text>
+          {traveler && <SpeakButton text={fr} dim />}
         </View>
         <Text style={[styles.fr, traveler && styles.frLight]}>{fr}</Text>
         <View style={[styles.divider, traveler && styles.dividerLight]} />

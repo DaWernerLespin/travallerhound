@@ -41,6 +41,9 @@ Decisions made while building without the team present. Each one is easy to chan
 - Questions: allergens, cross-contamination, plus one per hidden-risk ingredient (e.g. "Werden die Pommes in Erdnussöl frittiert?").
 - "Je vais demander au chef" keeps the staff screen open so they can answer after checking.
 - Translation is a phrase table behind `Translator`; staff answers come from `StaffReplySource`. Both swap in `staff-chat/index.ts`.
+- Free text works both ways (traveller in German, staff in French), translated with DeepL behind `TextTranslator`. DeepL blocks browser calls and the key must stay secret, so the app calls our own `/api/translate`: the Metro dev server (`metro.config.js`) locally, the Vercel function (`api/translate.js`) when deployed. Key: `DEEPL_API_KEY`.
+- Free-text messages are marked "maschinell übersetzt" and never change the rating. After a free-text answer from the staff, the traveller marks the dish "Sicher" or "Nicht sicher" themselves. "Sicher" never overrides a dish that the menu or the dish database says contains peanut or lupin.
+- A free-text question always hands the phone to the staff, also in demo restaurants (the virtual staff can't understand free text).
 - If the staff couldn't confirm everything and no question is left, the app recommends choosing another dish.
 
 ## Order notice

@@ -1,13 +1,15 @@
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View, type ScrollViewInstance } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View, type ScrollViewInstance } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ChatBubble } from '@/components/chat-bubble';
+import { FreeTextInput } from '@/components/free-text-input';
 import { Icon } from '@/components/icon';
 import { FEATURES } from '@/constants/features';
 import { colors, fonts, radius } from '@/constants/theme';
 import { germanLabel } from '@/features/menu-input/german-label';
+import type { TravelerDecision } from '@/features/dish-rating/types';
 import type { MenuItem } from '@/features/menu-input/types';
 import { ORDER_NOTES, withNotes } from '@/features/order/notes';
 import type { WishState } from '@/features/order/order-state';
@@ -36,7 +38,7 @@ export default function VisitChatScreen() {
   const allChecked = total > 0 && pending.length === 0;
   /** Accent only once every dish is checked and at least one can be ordered. */
   const orderReady = allChecked && confirmed.length > 0;
-  const staffMode = chat.activeQuestion !== null;
+  const staffMode = chat.staffMode;
 
   return (
     <SafeAreaView style={styles.screen}>
@@ -63,6 +65,8 @@ export default function VisitChatScreen() {
         </Pressable>
       </View>
 
+      {/* Pinned above the chat, so it never covers new messages. */}
+      {chat.focus && chat.canDecide && <DecisionRow name={germanName(chat.focus) ?? chat.focus.name} onDecide={chat.decide} />}
       <ScrollView
         ref={scrollRef}
         style={styles.flex}
@@ -88,7 +92,7 @@ export default function VisitChatScreen() {
       </ScrollView>
 
       {staffMode ? (
-        <StaffPanel key={chat.activeQuestion?.id} replies={chat.staffReplies} onReply={chat.reply} />
+        <StaffPanel key={chat.activeQuestion?.id ?? 'free'} replies={chat.staffReplies} onReply={chat.reply} onFreeText={chat.replyFree} />
       ) : (
         <View style={styles.dock}>
           {chat.focus && (
@@ -154,16 +158,13 @@ export default function VisitChatScreen() {
               )}
             </>
           )}
-          {/* Later: free text with online translation (FEATURES.freeChat). */}
-          <View style={[styles.freeText, !FEATURES.freeChat && styles.disabled]}>
-            <TextInput
-              style={styles.freeInput}
-              editable={FEATURES.freeChat}
-              placeholder={FEATURES.freeChat ? 'Eigene Nachricht schreiben' : 'Freie Nachricht · bald verfügbar'}
-              placeholderTextColor={colors.muted}
-            />
-            <Icon name="chevron" size={16} color={colors.muted} />
-          </View>
+          <FreeTextInput
+            enabled={FEATURES.freeChat && !chat.staffTyping}
+            placeholder={FEATURES.freeChat ? 'Eigene Frage auf Deutsch schreiben' : 'Freie Nachricht · bald verfügbar'}
+            busyLabel="Übersetze …"
+            errorLabel="Übersetzung fehlgeschlagen. Bitte erneut versuchen."
+            onSend={chat.askFree}
+          />
           <Pressable onPress={() => router.push('/analysis')} hitSlop={8} accessibilityRole="button">
             <Text style={styles.add}>+ Weitere Gerichte hinzufügen</Text>
           </Pressable>
@@ -199,14 +200,41 @@ function Message({ message, name, notes }: { message: ChatMessage; name?: string
       </View>
     );
   }
-  return <ChatBubble side={message.side} fr={message.fr} de={message.de} />;
+  return <ChatBubble side={message.side} fr={message.fr} de={message.de} free={message.free} />;
+}
+
+/** After a free-text answer, free text never rates a dish: the traveller decides themselves. */
+function DecisionRow({ name, onDecide }: { name: string; onDecide: (decision: TravelerDecision) => void }) {
+  return (
+    <View style={styles.decision}>
+      <Text style={styles.decisionText}>Bitte wähle eine Bewertung für „{name}“ wenn Du Dir sicher bist.</Text>
+      <View style={styles.decisionButtons}>
+        <Pressable onPress={() => onDecide('safe')} style={({ pressed }) => [styles.decide, styles.decideSafe, pressed && styles.pressed]} accessibilityRole="button">
+          <Icon name="check" size={14} color={colors.white} />
+          <Text style={styles.decideText}>Sicher</Text>
+        </Pressable>
+        <Pressable onPress={() => onDecide('unsafe')} style={({ pressed }) => [styles.decide, styles.decideUnsafe, pressed && styles.pressed]} accessibilityRole="button">
+          <Icon name="close" size={14} color={colors.white} />
+          <Text style={styles.decideText}>Nicht sicher</Text>
+        </Pressable>
+      </View>
+    </View>
+  );
 }
 
 /**
  * Real product (no demo restaurant): shown while the phone is with the staff. French only, big tap targets.
  * "Oui, avec une modification" lets the staff pick the change (e.g. salad instead of fries) that makes the dish safe.
  */
-function StaffPanel({ replies, onReply }: { replies: StaffReply[]; onReply: (reply: StaffReply, noteId?: string) => void }) {
+function StaffPanel({
+  replies,
+  onReply,
+  onFreeText,
+}: {
+  replies: StaffReply[];
+  onReply: (reply: StaffReply, noteId?: string) => void;
+  onFreeText: (text: string) => Promise<void>;
+}) {
   const [open, setOpen] = useState(true);
   const [needsNote, setNeedsNote] = useState<StaffReply | null>(null);
   const texts = useRenderedPhrases(
@@ -251,6 +279,16 @@ function StaffPanel({ replies, onReply }: { replies: StaffReply[]; onReply: (rep
             <Text style={styles.replyText}>← Retour</Text>
           </Pressable>
         </ScrollView>
+      )}
+      {open && !needsNote && (
+        <FreeTextInput
+          dark
+          enabled
+          placeholder="Autre réponse : écrivez en français"
+          busyLabel="Traduction …"
+          errorLabel="La traduction a échoué. Réessayez."
+          onSend={onFreeText}
+        />
       )}
     </View>
   );
@@ -304,9 +342,13 @@ const styles = StyleSheet.create({
   chipGerman: { fontFamily: fonts.body, fontSize: 11, color: colors.muted },
   chipGermanActive: { color: colors.line },
   pressed: { opacity: 0.5 },
-  freeText: { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 18, borderWidth: 1, borderColor: colors.line, paddingHorizontal: 12 },
-  disabled: { opacity: 0.55 },
-  freeInput: { flex: 1, minHeight: 38, fontFamily: fonts.body, fontSize: 13, color: colors.ink },
+  decision: { gap: 8, paddingHorizontal: 14, paddingVertical: 10, backgroundColor: colors.paper, borderTopWidth: 1, borderBottomWidth: 1, borderColor: colors.line },
+  decisionText: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.ink },
+  decisionButtons: { flexDirection: 'row', gap: 8 },
+  decide: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: 14, paddingVertical: 8 },
+  decideSafe: { backgroundColor: colors.green },
+  decideUnsafe: { backgroundColor: colors.red },
+  decideText: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.white },
   add: { textAlign: 'center', fontFamily: fonts.bodyBold, fontSize: 13, color: colors.ink },
   staffPanel: { backgroundColor: colors.ink, borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingHorizontal: 16, paddingVertical: 14, gap: 7 },
   staffHead: { flexDirection: 'row', alignItems: 'center', gap: 10 },

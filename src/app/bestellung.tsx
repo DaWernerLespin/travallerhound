@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppText } from '@/components/app-text';
 import { CollapsibleGroup } from '@/components/collapsible-group';
+import { FreeTextInput } from '@/components/free-text-input';
 import { Icon } from '@/components/icon';
 import { PrimaryButton } from '@/components/primary-button';
 import { SafetyNotice } from '@/components/safety-notice';
@@ -13,7 +14,8 @@ import { TopBar } from '@/components/top-bar';
 import { colors, fonts, radius } from '@/constants/theme';
 import { germanLabel } from '@/features/menu-input/german-label';
 import { useMenuSession } from '@/features/menu-session/session-context';
-import { ORDER_NOTES, withNotes } from '@/features/order/notes';
+import { addCustomNote, findNote, isCustomNote, ORDER_NOTES, withNotes } from '@/features/order/notes';
+import { textTranslator } from '@/features/staff-chat';
 import { useVisitChat } from '@/features/staff-chat/use-visit-chat';
 
 const back = () => (router.canGoBack() ? router.back() : router.replace('/analysis'));
@@ -34,6 +36,13 @@ export default function OrderListScreen() {
     setNoticeVisible(false);
     setWatched(watch);
     await chat.orderAll();
+  };
+  /** The traveller's own note in German, translated to French for the staff. Throws if translation fails. */
+  const addOwnNote = async (itemId: string, de: string) => {
+    const text = de.trim();
+    if (!text) return;
+    const fr = await textTranslator.translate(text, 'de', 'fr');
+    session.toggleNote(itemId, addCustomNote(text, fr).id, true);
   };
   const frenchList = confirmed.map((id) => `• ${withNotes(chat.itemOf(id)?.name ?? '', chat.notes[id] ?? [], 'fr')}`).join('\n');
 
@@ -97,6 +106,27 @@ export default function OrderListScreen() {
                           </Pressable>
                         );
                       })}
+                      {notes.filter(isCustomNote).map((noteId) => (
+                        <Pressable
+                          key={noteId}
+                          onPress={() => session.toggleNote(id, noteId, false)}
+                          style={[styles.noteChip, styles.noteChipOn]}
+                          accessibilityRole="button"
+                          accessibilityLabel={`Eigenen Hinweis entfernen: ${findNote(noteId)?.de ?? ''}`}
+                        >
+                          <Text style={[styles.noteChipText, styles.noteChipTextOn]}>{findNote(noteId)?.de} ✕</Text>
+                        </Pressable>
+                      ))}
+                      <View style={styles.ownNote}>
+                        <FreeTextInput
+                          dark
+                          enabled
+                          placeholder="Eigener Hinweis auf Deutsch, z. B. ohne Koriander"
+                          busyLabel="Übersetze …"
+                          errorLabel="Übersetzung fehlgeschlagen. Bitte erneut versuchen."
+                          onSend={(text) => addOwnNote(id, text)}
+                        />
+                      </View>
                     </View>
                   )}
                 </View>
@@ -183,6 +213,7 @@ const styles = StyleSheet.create({
   noteToggle: { alignSelf: 'flex-start', paddingVertical: 2, marginTop: 6 },
   noteToggleText: { fontFamily: fonts.bodyBold, fontSize: 12, color: colors.brand },
   noteWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
+  ownNote: { width: '100%', marginTop: 2 },
   noteChip: { borderRadius: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)', paddingVertical: 5, paddingHorizontal: 10 },
   noteChipOn: { backgroundColor: colors.cream, borderColor: colors.cream },
   noteChipText: { fontFamily: fonts.bodyMedium, fontSize: 12, color: colors.cream },
