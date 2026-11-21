@@ -17,6 +17,7 @@ export type IconName =
   | 'qr'
   | 'plus'
   | 'speaker'
+  | 'stop'
   | 'list';
 
 /** Line icons from the Click-Dummy (24×24). */
@@ -38,6 +39,7 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <Path d="M16.5 8.5a5 5 0 0 1 0 7" />
     </>
   ),
+  stop: <Rect x="6.5" y="6.5" width="11" height="11" rx="2" />,
   list: (
     <>
       <Path d="M9 6h11M9 12h11M9 18h11" />

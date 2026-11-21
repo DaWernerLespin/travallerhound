@@ -8,13 +8,13 @@ import { CollapsibleGroup } from '@/components/collapsible-group';
 import { Icon } from '@/components/icon';
 import { PrimaryButton } from '@/components/primary-button';
 import { SafetyNotice } from '@/components/safety-notice';
+import { SpeakButton } from '@/components/speak-button';
 import { TopBar } from '@/components/top-bar';
 import { colors, fonts, radius } from '@/constants/theme';
 import { germanLabel } from '@/features/menu-input/german-label';
 import { useMenuSession } from '@/features/menu-session/session-context';
 import { ORDER_NOTES, withNotes } from '@/features/order/notes';
 import { useVisitChat } from '@/features/staff-chat/use-visit-chat';
-import { speakFrench } from '@/lib/speech';
 
 const back = () => (router.canGoBack() ? router.back() : router.replace('/analysis'));
 
@@ -54,9 +54,7 @@ export default function OrderListScreen() {
           <View style={styles.staffCard}>
             <View style={styles.cardHead}>
               <Text style={[styles.flex, styles.staffTitle]}>Pour le personnel</Text>
-              <Pressable onPress={() => speakFrench(`Je voudrais commander : ${frenchList.replace(/•/g, '')}`)} hitSlop={8} accessibilityLabel="Vorlesen">
-                <Icon name="speaker" size={18} color={colors.brand} />
-              </Pressable>
+              <SpeakButton text={`Je voudrais commander : ${frenchList.replace(/•/g, '')}`} size={18} color={colors.brand} />
             </View>
             {confirmed.map((id, index) => {
               const item = chat.itemOf(id);

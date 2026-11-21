@@ -1,6 +1,7 @@
 import { createAudioPlayer, setAudioModeAsync, type AudioPlayer } from 'expo-audio';
 import { File, Paths } from 'expo-file-system';
 import * as Speech from 'expo-speech';
+import { useSyncExternalStore } from 'react';
 import { Platform } from 'react-native';
 
 /**
@@ -21,20 +22,59 @@ const audioCache = new Map<string, string>();
 let player: AudioPlayer | null = null;
 let audioModeSet = false;
 
+/** Text currently being read aloud (or loading), so its button can turn into a stop button. */
+let speakingText: string | null = null;
+const listeners = new Set<() => void>();
+/** Bumped on every start/stop, so callbacks of an older playback are ignored. */
+let generation = 0;
+
+function setSpeaking(text: string | null): void {
+  speakingText = text;
+  listeners.forEach((listener) => listener());
+}
+
+function subscribe(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+/** True while `text` is being read aloud. */
+export function useIsSpeaking(text: string): boolean {
+  return useSyncExternalStore(subscribe, () => speakingText === text);
+}
+
 export function speakFrench(text: string): void {
   stopSpeaking();
+  const id = ++generation;
+  setSpeaking(text);
+  const current = () => id === generation;
+  const done = () => {
+    if (current()) setSpeaking(null);
+  };
   if (!AZURE_KEY) {
-    void speakWithDevice(text);
+    void speakWithDevice(text, done, current);
     return;
   }
   azureAudio(text)
-    .then(play)
-    .catch(() => speakWithDevice(text));
+    .then((uri) => {
+      if (current()) return play(uri, done);
+    })
+    .catch(() => {
+      if (current()) return speakWithDevice(text, done, current);
+    });
 }
 
 export function stopSpeaking(): void {
+  generation++;
   Speech.stop();
   player?.pause();
+  setSpeaking(null);
+}
+
+/** Starts reading `text`, or stops it if it is the one being read. */
+export function toggleFrench(text: string): void {
+  if (speakingText === text) stopSpeaking();
+  else speakFrench(text);
 }
 
 async function azureAudio(text: string): Promise<string> {
@@ -68,26 +108,37 @@ async function azureAudio(text: string): Promise<string> {
   return uri;
 }
 
-async function play(uri: string): Promise<void> {
+async function play(uri: string, onDone: () => void): Promise<void> {
   if (!audioModeSet) {
     audioModeSet = true;
     await setAudioModeAsync({ playsInSilentMode: true }).catch(() => undefined);
   }
   player?.remove();
   player = createAudioPlayer(uri);
+  player.addListener('playbackStatusUpdate', (status) => {
+    if (status.didJustFinish) onDone();
+  });
   player.play();
 }
 
 /** Device voice as fallback: an "Enhanced" French voice if the phone has one, else the default fr-FR voice. */
 let deviceVoice: string | null | undefined;
-async function speakWithDevice(text: string): Promise<void> {
+async function speakWithDevice(text: string, onDone: () => void, current: () => boolean): Promise<void> {
   if (deviceVoice === undefined) {
     const voices = await Speech.getAvailableVoicesAsync().catch(() => []);
     const french = voices.filter((voice) => voice.language.toLowerCase().startsWith('fr'));
     const best = french.find((voice) => voice.quality === Speech.VoiceQuality.Enhanced) ?? french[0];
     deviceVoice = best?.identifier ?? null;
   }
-  Speech.speak(text, { language: 'fr-FR', rate: 0.95, voice: deviceVoice ?? undefined });
+  if (!current()) return;
+  Speech.speak(text, {
+    language: 'fr-FR',
+    rate: 0.95,
+    voice: deviceVoice ?? undefined,
+    onDone,
+    onStopped: onDone,
+    onError: onDone,
+  });
 }
 
 function escapeXml(text: string): string {

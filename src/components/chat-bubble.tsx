@@ -1,9 +1,7 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { colors, fonts } from '@/constants/theme';
-import { speakFrench } from '@/lib/speech';
-
-import { Icon } from './icon';
+import { SpeakButton } from './speak-button';
 
 /**
  * French text big, German translation small, like the Click-Dummy chat.
@@ -24,11 +22,7 @@ export function ChatBubble({ side, fr, de }: { side: 'traveler' | 'staff' | 'sys
         <View style={styles.head}>
           <Text style={[styles.label, traveler && styles.labelLight]}>{traveler ? 'Du' : 'Personal'}</Text>
           {traveler && (
-            <Pressable onPress={() => speakFrench(fr)} hitSlop={10} accessibilityRole="button" accessibilityLabel="Auf Französisch vorlesen">
-              <View style={styles.speaker}>
-                <Icon name="speaker" size={16} color={colors.white} />
-              </View>
-            </Pressable>
+            <SpeakButton text={fr} dim />
           )}
         </View>
         <Text style={[styles.fr, traveler && styles.frLight]}>{fr}</Text>
@@ -49,7 +43,6 @@ const styles = StyleSheet.create({
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 4 },
   label: { fontFamily: fonts.display, fontSize: 9, letterSpacing: 1.2, textTransform: 'uppercase', color: colors.muted },
   labelLight: { color: colors.welcomeText },
-  speaker: { opacity: 0.55 },
   fr: { fontFamily: fonts.bodyMedium, fontSize: 15, lineHeight: 21, color: colors.ink },
   frLight: { color: colors.white },
   divider: { height: 1, backgroundColor: colors.line, marginVertical: 7 },
