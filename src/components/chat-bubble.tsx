@@ -1,15 +1,15 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { colors, fonts } from '@/constants/theme';
-import { speakFrench } from '@/lib/speech';
 
-import { Icon } from './icon';
+import { SpeakButton } from './speak-button';
 
 /**
  * French text big, German translation small, like the Click-Dummy chat.
  * The speaker reads the French text aloud for the staff. `system` = Bruno's short German status line.
+ * `free` = typed as free text and machine-translated, marked so nobody mistakes it for a checked phrase.
  */
-export function ChatBubble({ side, fr, de }: { side: 'traveler' | 'staff' | 'system'; fr: string; de: string }) {
+export function ChatBubble({ side, fr, de, free = false }: { side: 'traveler' | 'staff' | 'system'; fr: string; de: string; free?: boolean }) {
   if (side === 'system') {
     return (
       <View style={styles.systemRow}>
@@ -22,14 +22,11 @@ export function ChatBubble({ side, fr, de }: { side: 'traveler' | 'staff' | 'sys
     <View style={[styles.row, traveler ? styles.rowRight : styles.rowLeft]}>
       <View style={[styles.bubble, traveler ? styles.traveler : styles.staff]}>
         <View style={styles.head}>
-          <Text style={[styles.label, traveler && styles.labelLight]}>{traveler ? 'Du' : 'Personal'}</Text>
-          {traveler && (
-            <Pressable onPress={() => speakFrench(fr)} hitSlop={10} accessibilityRole="button" accessibilityLabel="Auf Französisch vorlesen">
-              <View style={styles.speaker}>
-                <Icon name="speaker" size={16} color={colors.white} />
-              </View>
-            </Pressable>
-          )}
+          <Text style={[styles.label, traveler && styles.labelLight]}>
+            {traveler ? 'Du' : 'Personal'}
+            {free ? ' · maschinell übersetzt' : ''}
+          </Text>
+          {traveler && <SpeakButton text={fr} dim />}
         </View>
         <Text style={[styles.fr, traveler && styles.frLight]}>{fr}</Text>
         <View style={[styles.divider, traveler && styles.dividerLight]} />
@@ -49,7 +46,6 @@ const styles = StyleSheet.create({
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 4 },
   label: { fontFamily: fonts.display, fontSize: 9, letterSpacing: 1.2, textTransform: 'uppercase', color: colors.muted },
   labelLight: { color: colors.welcomeText },
-  speaker: { opacity: 0.55 },
   fr: { fontFamily: fonts.bodyMedium, fontSize: 15, lineHeight: 21, color: colors.ink },
   frLight: { color: colors.white },
   divider: { height: 1, backgroundColor: colors.line, marginVertical: 7 },

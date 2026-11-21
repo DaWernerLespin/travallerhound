@@ -103,10 +103,21 @@ const REPLIES: Record<Question['topic'], StaffReply[]> = {
   ],
 };
 
+/** Answers to a free-text question: plain information, no effect on the rating. */
+const FREE_REPLIES: StaffReply[] = [
+  { id: 'free-yes', phrase: { id: 'reply_yes' }, effect: {}, tone: 'neutral' },
+  { id: 'free-no', phrase: { id: 'reply_no' }, effect: {}, tone: 'neutral' },
+  { id: 'free-unknown', phrase: { id: 'reply_unknown' }, effect: {}, tone: 'neutral' },
+  ASK_CHEF,
+];
+
 /** MVP reply source: fixed French quick replies per question topic. */
 export class QuickReplySource implements StaffReplySource {
   repliesFor(question: Question): StaffReply[] {
     return REPLIES[question.topic];
+  }
+  freeReplies(): StaffReply[] {
+    return FREE_REPLIES;
   }
 }
 

@@ -1,6 +1,6 @@
 import { ALLERGENS, type Allergen, type GenericTerm, type Ingredient } from '@/features/dish-db/types';
 
-import type { DishRating, Finding, FindingSource, RatingInput, StaffVerdict } from './types';
+import type { DishRating, Finding, FindingSource, RatingInput, StaffVerdict, TravelerDecision } from './types';
 import { EMPTY_VERDICT } from './types';
 
 export const ALLERGEN_LABEL: Record<Allergen, string> = { peanut: 'Erdnuss', lupin: 'Lupine' };
@@ -77,6 +77,24 @@ export function rateDish(input: RatingInput, verdict: StaffVerdict = EMPTY_VERDI
     findings,
     checks,
   };
+}
+
+/** The menu or the dish database says the dish contains peanut or lupin: nobody can mark it safe. */
+export function definitelyContains(rating: DishRating): boolean {
+  return rating.findings.some((f) => f.level === 'contains' && f.source !== 'staff');
+}
+
+/**
+ * The traveller marks a dish safe or not safe after a free-text answer from the staff (free text never rates by itself).
+ * "Not safe" always applies; "safe" never overrides a dish that definitely contains an allergen.
+ */
+export function applyTravelerDecision(rating: DishRating, decision: TravelerDecision | undefined): DishRating {
+  if (!decision) return rating;
+  if (decision === 'unsafe') {
+    return { ...rating, status: 'unsafe', reason: 'Du hast das Gericht nach der Antwort des Personals als nicht sicher markiert.' };
+  }
+  if (definitelyContains(rating)) return rating;
+  return { ...rating, status: 'safe', reason: 'Du hast das Gericht nach der Antwort des Personals als sicher markiert.' };
 }
 
 /** Safe only if the staff confirmed all three and was not unsure about any ingredient. */

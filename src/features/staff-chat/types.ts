@@ -13,6 +13,14 @@ export interface Translator {
   render(phrase: Phrase, language: Language): Promise<string>;
 }
 
+/**
+ * Translates free text (the chat's text field). MVP: DeepL via our own /api/translate.
+ * Free-text messages never change the safety rating.
+ */
+export interface TextTranslator {
+  translate(text: string, from: Language, to: Language): Promise<string>;
+}
+
 export type QuestionTopic = 'allergens' | 'cross' | 'ingredient';
 
 export type Question = {
@@ -44,6 +52,8 @@ export type StaffReply = {
  */
 export interface StaffReplySource {
   repliesFor(question: Question): StaffReply[];
+  /** General answers to a free-text question. They never change the rating. */
+  freeReplies(): StaffReply[];
 }
 
 export type ChatMessage = {
@@ -56,4 +66,6 @@ export type ChatMessage = {
   itemId?: string;
   /** intro = allergy explanation (shown collapsed); safe/unsafe = result card for the dish. */
   kind?: 'intro' | 'safe' | 'unsafe';
+  /** Typed as free text and machine-translated (DeepL). */
+  free?: boolean;
 };
