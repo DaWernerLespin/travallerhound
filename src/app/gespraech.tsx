@@ -7,6 +7,7 @@ import { ChatBubble } from '@/components/chat-bubble';
 import { Icon } from '@/components/icon';
 import { FEATURES } from '@/constants/features';
 import { colors, fonts, radius } from '@/constants/theme';
+import { germanLabel } from '@/features/menu-input/german-label';
 import type { MenuItem } from '@/features/menu-input/types';
 import { ORDER_NOTES, withNotes } from '@/features/order/notes';
 import type { WishState } from '@/features/order/order-state';
@@ -99,29 +100,42 @@ export default function VisitChatScreen() {
                 accessibilityHint={pending.length > 1 ? 'Anderes Gericht wählen' : undefined}
               >
                 <Text style={styles.nowLabel}>JETZT</Text>
-                <Text style={styles.nowName} numberOfLines={1}>
-                  {chat.focus.name}
-                </Text>
+                <View style={styles.flex}>
+                  <Text style={styles.nowName} numberOfLines={1}>
+                    {chat.focus.name}
+                  </Text>
+                  <Text style={styles.nowGerman} numberOfLines={1}>
+                    {germanLabel(chat.focus)}
+                  </Text>
+                </View>
                 {pending.length > 1 && <Text style={styles.nowMore}>{picking ? 'schließen' : `+${pending.length - 1} offen`}</Text>}
                 {pending.length <= 1 && <Text style={styles.badge}>offen</Text>}
               </Pressable>
               {picking ? (
                 <View style={styles.chips}>
-                  {pending.map((id) => (
-                    <Pressable
-                      key={id}
-                      onPress={() => {
-                        chat.choose(id);
-                        setPicking(false);
-                      }}
-                      style={[styles.chip, id === chat.focus?.id && styles.chipActive]}
-                      accessibilityRole="button"
-                    >
-                      <Text style={[styles.chipText, id === chat.focus?.id && styles.chipTextActive]} numberOfLines={1}>
-                        {chat.itemOf(id)?.name}
-                      </Text>
-                    </Pressable>
-                  ))}
+                  {pending.flatMap((id) => {
+                    const item = chat.itemOf(id);
+                    if (!item) return [];
+                    const active = id === chat.focus?.id;
+                    return [
+                      <Pressable
+                        key={id}
+                        onPress={() => {
+                          chat.choose(id);
+                          setPicking(false);
+                        }}
+                        style={[styles.chip, active && styles.chipActive]}
+                        accessibilityRole="button"
+                      >
+                        <Text style={[styles.chipText, active && styles.chipTextActive]} numberOfLines={1}>
+                          {item.name}
+                        </Text>
+                        <Text style={[styles.chipGerman, active && styles.chipGermanActive]} numberOfLines={1}>
+                          {germanLabel(item)}
+                        </Text>
+                      </Pressable>,
+                    ];
+                  })}
                 </View>
               ) : (
                 <View style={styles.chips}>
@@ -278,7 +292,8 @@ const styles = StyleSheet.create({
   dock: { backgroundColor: colors.paper, borderTopWidth: 1, borderTopColor: colors.line, paddingHorizontal: 14, paddingTop: 10, paddingBottom: 12, gap: 8 },
   now: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   nowLabel: { fontFamily: fonts.display, fontSize: 10, letterSpacing: 1.2, color: colors.muted },
-  nowName: { flex: 1, fontFamily: fonts.bodyBold, fontSize: 14, color: colors.ink },
+  nowName: { fontFamily: fonts.bodyBold, fontSize: 14, color: colors.ink },
+  nowGerman: { fontFamily: fonts.body, fontSize: 12, color: colors.muted, marginTop: 1 },
   nowMore: { fontFamily: fonts.bodyBold, fontSize: 12, color: colors.ink, textDecorationLine: 'underline' },
   badge: { fontFamily: fonts.bodyBold, fontSize: 11, color: colors.muted, backgroundColor: colors.line, borderRadius: 10, paddingVertical: 2, paddingHorizontal: 8, overflow: 'hidden' },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
@@ -286,6 +301,8 @@ const styles = StyleSheet.create({
   chipActive: { backgroundColor: colors.ink },
   chipText: { fontFamily: fonts.bodyBold, fontSize: 12.5, color: colors.ink },
   chipTextActive: { color: colors.paper },
+  chipGerman: { fontFamily: fonts.body, fontSize: 11, color: colors.muted },
+  chipGermanActive: { color: colors.line },
   pressed: { opacity: 0.5 },
   freeText: { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 18, borderWidth: 1, borderColor: colors.line, paddingHorizontal: 12 },
   disabled: { opacity: 0.55 },
