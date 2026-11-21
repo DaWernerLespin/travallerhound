@@ -2,8 +2,8 @@ import { createContext, useCallback, useContext, useMemo, useReducer, type React
 
 import { dishKnowledge } from '@/features/dish-db';
 import { buildRatingInput } from '@/features/dish-rating/build-input';
-import { rateDish } from '@/features/dish-rating/rate-dish';
-import { EMPTY_VERDICT, type DishRating, type StaffVerdict } from '@/features/dish-rating/types';
+import { applyTravelerDecision, rateDish } from '@/features/dish-rating/rate-dish';
+import { EMPTY_VERDICT, type DishRating, type StaffVerdict, type TravelerDecision } from '@/features/dish-rating/types';
 import { parseMenuText } from '@/features/menu-input/parse-menu';
 import type { MenuItem } from '@/features/menu-input/types';
 import type { ChatMessage } from '@/features/staff-chat/types';
@@ -19,6 +19,8 @@ type SessionState = {
   menuId: string | null;
   scanStartedAt: number | null;
   verdicts: Record<string, StaffVerdict>;
+  /** The traveller's own safe / not safe call per dish, after a free-text answer. */
+  decisions: Record<string, TravelerDecision>;
   /** One chat for the whole visit. */
   messages: ChatMessage[];
   /** Dish ids in the order they were added. */
@@ -36,6 +38,7 @@ type Action =
   | { type: 'loadMenu'; items: MenuItem[]; sourceLabel: string; menuId: string | null; now: number }
   | { type: 'addMessage'; message: ChatMessage }
   | { type: 'setVerdict'; itemId: string; verdict: StaffVerdict }
+  | { type: 'setDecision'; itemId: string; decision: TravelerDecision }
   | { type: 'markOrdered'; itemIds: string[] }
   | { type: 'markIntroduced' }
   | { type: 'addToWishlist'; itemId: string }
@@ -49,6 +52,7 @@ const INITIAL: SessionState = {
   menuId: null,
   scanStartedAt: null,
   verdicts: {},
+  decisions: {},
   messages: [],
   wishlist: [],
   focusId: null,
@@ -69,6 +73,8 @@ export function sessionReducer(state: SessionState, action: Action): SessionStat
     }
     case 'setVerdict':
       return { ...state, verdicts: { ...state.verdicts, [action.itemId]: action.verdict } };
+    case 'setDecision':
+      return { ...state, decisions: { ...state.decisions, [action.itemId]: action.decision } };
     case 'markOrdered': {
       const ordered = { ...state.ordered };
       for (const id of action.itemIds) ordered[id] = true;
@@ -102,6 +108,7 @@ type SessionValue = SessionState & {
   loadMenuText: (text: string, sourceLabel: string, menuId?: string) => number;
   addMessage: (message: ChatMessage) => void;
   setVerdict: (itemId: string, verdict: StaffVerdict) => void;
+  setDecision: (itemId: string, decision: TravelerDecision) => void;
   markOrdered: (itemIds: string[]) => void;
   markIntroduced: () => void;
   addToWishlist: (itemId: string) => void;
@@ -124,6 +131,7 @@ export function MenuSessionProvider({ children }: { children: ReactNode }) {
     () => ({
       addMessage: (message: ChatMessage) => dispatch({ type: 'addMessage', message }),
       setVerdict: (itemId: string, verdict: StaffVerdict) => dispatch({ type: 'setVerdict', itemId, verdict }),
+      setDecision: (itemId: string, decision: TravelerDecision) => dispatch({ type: 'setDecision', itemId, decision }),
       markOrdered: (itemIds: string[]) => dispatch({ type: 'markOrdered', itemIds }),
       markIntroduced: () => dispatch({ type: 'markIntroduced' }),
       addToWishlist: (itemId: string) => dispatch({ type: 'addToWishlist', itemId }),
@@ -144,16 +152,17 @@ export function useMenuSession(): SessionValue {
   return value;
 }
 
-/** Ratings for all menu items, including staff answers. */
+/** Ratings for all menu items, including staff answers and the traveller's own decisions. */
 export function useRatings(): Record<string, DishRating> {
-  const { items, verdicts } = useMenuSession();
+  const { items, verdicts, decisions } = useMenuSession();
   return useMemo(() => {
     const ratings: Record<string, DishRating> = {};
     for (const item of items) {
-      ratings[item.id] = rateDish(buildRatingInput(item, dishKnowledge), verdicts[item.id] ?? EMPTY_VERDICT);
+      const rating = rateDish(buildRatingInput(item, dishKnowledge), verdicts[item.id] ?? EMPTY_VERDICT);
+      ratings[item.id] = applyTravelerDecision(rating, decisions[item.id]);
     }
     return ratings;
-  }, [items, verdicts]);
+  }, [items, verdicts, decisions]);
 }
 
 /** Rating before any staff answer – used to decide which questions to ask. */

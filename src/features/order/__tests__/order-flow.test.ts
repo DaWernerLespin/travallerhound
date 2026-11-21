@@ -1,12 +1,16 @@
 import { describe, expect, it } from '@jest/globals';
 
+import { dishKnowledge } from '@/features/dish-db';
 import type { DishRating, DishStatus } from '@/features/dish-rating/types';
 import { EMPTY_VERDICT } from '@/features/dish-rating/types';
+import { parseMenuText } from '@/features/menu-input/parse-menu';
 import { sessionReducer } from '@/features/menu-session/session-context';
 import { applyReply, buildQuestions, QuickReplySource } from '@/features/staff-chat/conversation';
 import { PhraseTableTranslator } from '@/features/staff-chat/phrases';
+import type { ChatMessage } from '@/features/staff-chat/types';
+import { hadFreeAnswer, orderName } from '@/features/staff-chat/use-visit-chat';
 
-import { findNote, ORDER_NOTES, withNotes } from '../notes';
+import { addCustomNote, findNote, isCustomNote, ORDER_NOTES, withNotes } from '../notes';
 import { focusDish, orderOverview, wishState } from '../order-state';
 
 const rating = (status: DishStatus): DishRating => ({ status, reason: '', findings: [], checks: [] });
@@ -83,6 +87,7 @@ describe('visit session', () => {
       menuId: null,
       scanStartedAt: null,
       verdicts: {},
+      decisions: {},
       messages: [],
       wishlist: [],
       focusId: null,
@@ -120,5 +125,45 @@ describe('visit session', () => {
     expect(state.notes.a).toEqual([]);
     state = sessionReducer(state, { type: 'markOrdered', itemIds: ['a', 'b'] });
     expect(state.ordered).toEqual({ a: true, b: true });
+  });
+});
+
+describe('own order notes', () => {
+  it('are listed with their French translation', () => {
+    const note = addCustomNote('ohne Koriander', 'sans coriandre');
+    expect(isCustomNote(note.id)).toBe(true);
+    expect(withNotes('Steak frites', ['sans-sauce', note.id], 'fr')).toBe('Steak frites, sans sauce, sans coriandre');
+    expect(withNotes('Steak frites', [note.id], 'de')).toBe('Steak frites, ohne Koriander');
+  });
+});
+
+describe('free-text answers', () => {
+  const msg = (side: ChatMessage['side'], itemId: string, free = false): ChatMessage => ({ id: `${side}${itemId}${free}`, side, fr: '', de: '', itemId, free });
+
+  it('let the traveller decide after a typed staff answer', () => {
+    expect(hadFreeAnswer([msg('staff', 'a', true)], 'a')).toBe(true);
+  });
+
+  it('let the traveller decide after a tapped answer to a free-text question', () => {
+    expect(hadFreeAnswer([msg('traveler', 'a', true), msg('staff', 'a')], 'a')).toBe(true);
+  });
+
+  it('do not count quick answers to quick questions or other dishes', () => {
+    expect(hadFreeAnswer([msg('traveler', 'a'), msg('staff', 'a')], 'a')).toBe(false);
+    expect(hadFreeAnswer([msg('traveler', 'b', true), msg('staff', 'b')], 'a')).toBe(false);
+  });
+});
+
+describe('order message', () => {
+  it('names the dish in German with the French original in brackets', () => {
+    const [item] = parseMenuText('Carpaccio de boeuf', dishKnowledge);
+    expect(orderName(item, 'de')).toBe(`${item.match?.dish.de} (${item.name})`);
+    expect(orderName(item, 'fr')).toBe(item.name);
+  });
+
+  it('keeps the French name alone when the dish is unknown', () => {
+    const [item] = parseMenuText('Spécialité xyz du chef', dishKnowledge);
+    expect(item.match).toBeFalsy();
+    expect(orderName(item, 'de')).toBe(item.name);
   });
 });

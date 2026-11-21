@@ -1,6 +1,6 @@
 /**
- * Preset order notes, shown in German for the traveller and in French for the staff.
- * Free text can't be translated offline, so notes come from this fixed list.
+ * Order notes, shown in German for the traveller and in French for the staff.
+ * Preset notes come from this fixed list; the traveller can add their own (translated with DeepL).
  */
 export type OrderNote = { id: string; de: string; fr: string };
 
@@ -17,8 +17,23 @@ export const ORDER_NOTES: OrderNote[] = [
   { id: 'huile-propre', de: 'in frischem Öl, separate Pfanne', fr: 'cuit dans une huile propre, poêle à part' },
 ];
 
+/** The traveller's own notes in this app session (in memory, like the visit). */
+const customNotes = new Map<string, OrderNote>();
+let customCounter = 0;
+
+/** Registers a note the traveller typed (German) with its French translation; returns it with a new id. */
+export function addCustomNote(de: string, fr: string): OrderNote {
+  const note = { id: `custom-${++customCounter}`, de, fr };
+  customNotes.set(note.id, note);
+  return note;
+}
+
+export function isCustomNote(id: string): boolean {
+  return customNotes.has(id);
+}
+
 export function findNote(id: string): OrderNote | undefined {
-  return ORDER_NOTES.find((note) => note.id === id);
+  return ORDER_NOTES.find((note) => note.id === id) ?? customNotes.get(id);
 }
 
 /** "Steak frites, sans sauce, sauce à part" */

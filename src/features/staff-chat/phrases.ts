@@ -61,6 +61,14 @@ const PHRASES: Record<string, Template> = {
     de: () => 'Ja, es enthält Lupinen oder Lupinenmehl.',
     fr: () => 'Oui, il contient du lupin ou de la farine de lupin.',
   },
+  reply_yes: {
+    de: () => 'Ja.',
+    fr: () => 'Oui.',
+  },
+  reply_no: {
+    de: () => 'Nein.',
+    fr: () => 'Non.',
+  },
   reply_ask_chef: {
     de: () => 'Ich frage beim Küchenchef nach. Einen Moment bitte.',
     fr: () => 'Je vais demander au chef. Un instant, s’il vous plaît.',

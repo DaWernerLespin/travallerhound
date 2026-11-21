@@ -26,6 +26,9 @@ export type StaffVerdict = {
   ingredients: Record<string, StaffAnswer>;
 };
 
+/** The traveller's own call after a free-text answer from the staff. */
+export type TravelerDecision = 'safe' | 'unsafe';
+
 export const EMPTY_VERDICT: StaffVerdict = {
   peanut: 'unasked',
   lupin: 'unasked',

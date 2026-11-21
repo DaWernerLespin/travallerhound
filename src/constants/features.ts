@@ -7,8 +7,8 @@ export const FEATURES = {
   menuPhoto: false,
   /** Upload a menu image or PDF (needs OCR, not built yet). Off = hidden. */
   menuUpload: false,
-  /** Free text in the staff chat with online translation (not built yet). Off = field shown greyed out. */
-  freeChat: false,
+  /** Free text in the staff chat (both directions), translated with DeepL via /api/translate. Off = field shown greyed out. */
+  freeChat: true,
   /** Demo restaurants: the staff screen offers the answer prepared for that restaurant (features/staff-chat/demo-staff.ts). */
   demoStaff: true,
 } as const;
