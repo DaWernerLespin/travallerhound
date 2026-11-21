@@ -19,11 +19,13 @@ const ROWS: { color: string; title: string; text: string }[] = [
   { color: colors.green, title: 'Sicher', text: 'Nur wenn das Personal Erdnuss, Lupine und Kreuzkontamination ausschließt.' },
 ];
 
-/** Collapsible explanation of how Bruno rates a dish, incl. the France-specific hidden risks. */
-export function RatingExplainer() {
-  return (
-    <CollapsibleGroup title="Wie bewerte ich?">
-      <View style={styles.box}>
+/**
+ * Explanation of how Bruno rates a dish, incl. the France-specific hidden risks.
+ * Collapsible by default; `bare` shows only the box (the analysis opens it from its header link).
+ */
+export function RatingExplainer({ bare = false }: { bare?: boolean }) {
+  const box = (
+    <View style={styles.box}>
         <Text style={styles.text}>
           Ich prüfe den Namen des Gerichts, die Zutaten auf der Karte und die typischen Zutaten aus meiner Datenbank.
         </Text>
@@ -40,9 +42,9 @@ export function RatingExplainer() {
           Typisch Frankreich: Frittiertes, Dressings und Mayonnaise oft mit Erdnussöl, Brot, Teig und Gebäck teils mit
           Lupinenmehl. Darauf achte ich besonders.
         </Text>
-      </View>
-    </CollapsibleGroup>
+    </View>
   );
+  return bare ? box : <CollapsibleGroup title="Wie bewerte ich?">{box}</CollapsibleGroup>;
 }
 
 const styles = StyleSheet.create({
